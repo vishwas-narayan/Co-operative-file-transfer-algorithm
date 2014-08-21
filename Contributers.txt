@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-
 Alfred Abhishek Singh
 Anees Fathima S
 Vishwas Narayan
@@ -7,6 +5,3 @@ Mehboobi Sunheri
 Sushma K
 Sunil Kumar KP
 
-=======
-Abhishek Alfred Singh
->>>>>>> parent of 91799c2... adding my name to contributers list.
