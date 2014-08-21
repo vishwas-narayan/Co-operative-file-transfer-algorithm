@@ -1,0 +1,21 @@
+MUlti Stream and InterfaCeS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Description of the problem:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The software is mainy to allow a client to connect over multiple interfaces on which the server might be listening. This operation must be synchronized over all connections.
+
+Whatever data that is transferred from the server to the client over the multiple interfaces  must be transmitted with reference to the multiple stream that are involved in the connection so that the data can be reassembled at the client without any errors.
+
+To think about this problem we need to think of a list of requirements that must be considered in  the Server and Client design.
+
+
+
+Requirements for the  MUSICS Server:
+~~~~~~~~~~~~~~~~~~
+1. 
+
+Requirements for the  MUSICS Client:
+~~~~~~~~~~~~~~~~~~
+1.
