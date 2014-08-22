@@ -1,11 +1,11 @@
     def getListOfNumbersFromConsole():
 
-        """ Not implemented yet"""
+        "Creating Fibo Series"
 
         pass
     def computeFibonacciForNumberList(numberList):
 
-        """ Not implemented yet""" 
+        """ Printing Fibo Series""" 
 
         pass
     if __name__=="__main__":
