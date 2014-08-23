@@ -10,12 +10,21 @@ Whatever data that is transferred from the server to the client over the multipl
 
 To think about this problem we need to think of a list of requirements that must be considered in  the Server and Client design.
 
+Usecase Scenario and Acceptance tests
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+1. The server(S) listens at a port(45000). On receiving a connection request from a client(C) the following handshake protocol performed.
+   * The server creates a Unique ID as a session id for the client.
+   * The Client Sends a GET request for a particular file.
+   * On receiving the request the server checks the file size of the requested file. 
+   * If the file size is greater than Eg. 2MB, server sends a CREATE N CONNECT requests to the client. 
+   * The client then creates N more connections to the server and sends the unique ID for authentication and authorization.
+   * The server then splits the file and sends the file to all client connections separately.
 
-Requirements for the  MUSICS Server:
-~~~~~~~~~~~~~~~~~~
+Technical Requirements for the  MUSICS Server:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 1. 
 
-Requirements for the  MUSICS Client:
-~~~~~~~~~~~~~~~~~~
-1.
+Technical Requirements for the  MUSICS Client:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. 
