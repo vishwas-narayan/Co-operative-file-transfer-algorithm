@@ -2,6 +2,9 @@
 """Requires Twisted matrix to run. To install do:  
         sudo apt-get install python-twisted
    ~~~~~~~~~~
+   Twisted is a framework that allows concurrent servers to be built 
+   using Asynchronous connections. We'll look into these later. 
+
 
    To see how it works run the program as:  python EchoServer.py
    Then open another terminal and use telnet program to connect: 
@@ -21,6 +24,6 @@ class Echo(protocol.Protocol):
 class EchoFactory(protocol.Factory):
     def buildProtocol(self, addr):
         return Echo()
-
-reactor.listenTCP(8000, EchoFactory())
-reactor.run()
+if __name__=="__main__":
+    reactor.listenTCP(8000, EchoFactory())
+    reactor.run()
