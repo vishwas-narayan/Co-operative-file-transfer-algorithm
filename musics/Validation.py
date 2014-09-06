@@ -1,4 +1,8 @@
 
+
+from exceptions import Exception
+class ValidationException(Exception):
+    pass
 class Validation:
     """
         Author:Sushma
@@ -6,27 +10,31 @@ class Validation:
 
     """
 
-    def checkValidation(self,inputGivenForFile):
-        newFormat=inputGivenForFile.split('/',1)
+    def validate(self,inputGivenForFile):
+        newFormat=inputGivenForFile.split(' ')
         newFormat1=newFormat[0]
-        if(newFormat1=="GET " and newFormat[1]!=''):
-            return 1
+        if(newFormat1=="GET" ):
+            newFormat3=newFormat[1]
+            isnewFormat=newFormat3.split('/r/n')
+            return ("GET",isnewFormat[0])
+            
         else:
-            return 0
+            raise ValidationException()
         
-if __name__=="__main__":
+"""if __name__=="__main__":
     validationObject=Validation()
-
-    if((validationObject.checkValidation("GET /text/page/asd.html"))==1):
+    
+    if((validationObject.validate("GET /text/page/asd.html"))==1):
         print "GET /text/page/asd.html is correct format"
 
-    if((validationObject.checkValidation("GET \text/page/asd.html"))!=1):
+    if((validationObject.validate("GET \text/page/asd.html"))!=1):
         print "GET \\text/page/asd.html is wrong format"
 
-    if((validationObject.checkValidation("GET/text/page/asd.html"))!=1):
+    if((validationObject.validate("GET/text/page/asd.html"))!=1):
         print "GET/text/page/asd.html is wrong format"    
-
-    if((validationObject.checkValidation("GET /"))!=1):
+        
+    if((validationObject.validate("GET /"))!=1):
         print "GET / is wrong format"
     text=raw_input("Enter text to validate: ")
-    print ("Text : %s is valid? %d" %(text,validationObject.checkValidation(text)))
+    print ("Text : %s is valid? %d" %(text,validationObject.validate(text)))
+"""
