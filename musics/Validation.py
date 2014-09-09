@@ -16,7 +16,7 @@ class Validation:
         if(newFormat1=="GET" ):
             newFormat3=newFormat[1]
             isnewFormat=newFormat3.split('/r/n')
-            return ("GET",isnewFormat[0])
+            return ("GET",isnewFormat[0].lstrip().rstrip())
             
         else:
             raise ValidationException()

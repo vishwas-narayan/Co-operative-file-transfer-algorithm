@@ -9,6 +9,8 @@ Here,BlockDivider is the class and myFunction is the function thats being called
 
 """
 from exceptions import Exception
+import LoggingConfig
+import logging as LOG
 class FileNotFoundException(Exception):
     pass
 
@@ -33,7 +35,7 @@ class BlockDivider:
             
             self.fd = open(filename,'r')
         except IOError:
-            print filename
+            LOG.error("Error file not found: [%s]" %(filename))
             raise FileNotFoundException()
             
     def getFileContent(self):

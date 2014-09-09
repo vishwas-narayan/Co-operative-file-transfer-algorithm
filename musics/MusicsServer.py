@@ -32,21 +32,23 @@ class Echo(protocol.Protocol):
         LOG.info("Received data from client: %s" ,data)
         try:
             v =Validation()
-            print ("Current working directory %s" %(os.getcwd()))
+            LOG.info ("Current working directory %s" %(os.getcwd()))
             filename=v.validate(data)[1]
-            print "filename validated %s " %(filename)
+            LOG.info ("filename validated %s " %(filename))
             bd=BlockDivider(filename)
-            print "File exists"
-            self.transport.write(bd.getFileContent())
-            print "File contents sent"
+            LOG.info ("File exists")
+            self.transport.write(str(bd.getFileContent()))
+            LOG.info ("File contents sent")
 
         except ValidationException:
             responseContent="Invalid query: %s" %(data)
+            self.transport.write(responseContent)
         except FileNotFoundException:
-            print "File not found"
+            LOG.info ("File not found")
             responseContent="FileNotFound : %s" %(filename)
+            self.transport.write(responseContent)
 
-        self.transport.write(responseContent)
+        
 
     def connectionLost(self,reason):
         Echo.connections-=1
