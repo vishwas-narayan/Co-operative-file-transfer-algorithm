@@ -1,16 +1,28 @@
-#this code is for only reading the input from the console
-def readInputFromTheConsole(numberOfElementsOfFibonacciSeries):
-  listName=[0]*numberOfElementsOfFibonacciSeries
-  #list initialization
-  i=0
-  print "enter the element's positions"
-  while i<numberOfElementsOfFibonacciSeries:
-    listName[i]=input()
-    i=i+1
-  return listName
+
 def getListOfNumbersFromConsole():
-  print "Enter the number of fibonacci elements to print"
-  storeList=readInputFromTheConsole(input())
-  print storeList
-  return storeList
-originalList=getListOfNumbersFromConsole()
+    print "Enter",n,"numbers"
+    for i in range(n):
+        numberList[i] = input()
+    return numberList
+    
+def computeFibonacciForNumberList(numberList):
+    previous = {0:0,1:1}
+    fibo = {}
+    def fibonacci(n):
+        if previous.has_key(n):
+            return previous[n]
+        else:
+            newValue = fibonacci(n-1) + fibonacci(n-2)
+            previous[n] = newValue
+            return newValue
+    for i in range(n):
+        fibo[numberList[i]] = fibonacci(numberList[i])
+    return fibo
+
+if __name__=="__main__":
+    n = input("enter n:")
+    numberList = [0]*n
+    print computeFibonacciForNumberList(getListOfNumbersFromConsole())
+    
+    
+        
