@@ -14,18 +14,24 @@ import logging as LOG
 class FileNotFoundException(Exception):
     pass
 
+class DS:
+    BLOCK="BLOCK"
+    BLOCKSIZE="BLOCKSIZE"
+    CONTENT="CONTENT"
+    CONTENT_TYPE="CONTENT_TYPE"
+    DATA=0
+    ID=1
+    EOF=5
 
-BLOCK="BLOCK"
-BLOCKSIZE="BLOCKSIZE"
-CONTENT="CONTENT"
 class BlockCreator():
     def __init__(self):
         self.blockNum=0
     def createBlock(self,data):
         d={}
-        d[BLOCK]=self.blockNum+1
-        d[BLOCKSIZE]=len(data)
-        d[CONTENT]=data
+        d[DS.BLOCK]=self.blockNum+1
+        d[DS.BLOCKSIZE]=len(data)
+        d[DS.CONTENT]=data
+        d[DS.CONTENT_TYPE]=DS.DATA
         return d
 
 class BlockDivider:
@@ -40,7 +46,7 @@ class BlockDivider:
             
     def getFileContent(self):
         bc = BlockCreator()
-        content=bc.createBlock(self.fd.readlines())
+        content=bc.createBlock(self.fd.read())
         return content
 
 if __name__ == "__main__":

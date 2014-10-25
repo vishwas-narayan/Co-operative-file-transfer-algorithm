@@ -18,26 +18,38 @@ from twisted.internet import protocol, reactor
 from signal import SIGINT, signal
 from sys import exit
 import logging as LOG
-import LoggingConfig
+"""import LoggingConfig"""
 from BlockDivider import BlockDivider, FileNotFoundException,BlockCreator
 from Validation import Validation, ValidationException
 import os
+import json
+
+i=1
+j=100
+a=[0]*900
+while(j<1000 and i<900):
+    a[i]=j
+    j=j+1
+    i=i+1
 class Echo(protocol.Protocol):
-    connections=0
+    connections=0             
     def connectionMade(self):
-        Echo.connections+=1
+        Echo.connections+=1               
         LOG.debug("Total connections: %d",Echo.connections)
 
     def dataReceived(self, data):
         LOG.info("Received data from client: %s" ,data)
+         
         try:
+          
             v =Validation()
             LOG.info ("Current working directory %s" %(os.getcwd()))
             filename=v.validate(data)[1]
             LOG.info ("filename validated %s " %(filename))
             bd=BlockDivider(filename)
             LOG.info ("File exists")
-            self.transport.write(str(bd.getFileContent()))
+            
+            self.transport.write(json.dumps(bd.getFileContent()))
             LOG.info ("File contents sent")
 
         except ValidationException:
@@ -53,7 +65,7 @@ class Echo(protocol.Protocol):
     def connectionLost(self,reason):
         Echo.connections-=1
         LOG.debug ("ConnectionLost, Total connections: %d " , Echo.connections)
-
+        
     @staticmethod
     def sigintHandler(num,trace):
         LOG.info("Quitting the program")
