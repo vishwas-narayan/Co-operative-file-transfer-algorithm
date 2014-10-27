@@ -21,8 +21,10 @@ class BlockCreater():
     def createBlock(self):
         return d
     
-    def createEndOfFile(self):
+    def createEndOfFile(self,data):
+        BlockCreater(data)
         d[DS.CONTENT_TYPE]=DS.EOF
+        return d
 
 if __name__ == "__main__":
     filename=raw_input("ENTER FILE NAME: ")
