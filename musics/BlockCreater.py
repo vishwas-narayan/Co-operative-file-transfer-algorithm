@@ -22,7 +22,7 @@ class BlockCreater():
         return d
     
     def createEndOfFile(self,data):
-        BlockCreater(data)
+        
         d[DS.CONTENT_TYPE]=DS.EOF
         return d
 

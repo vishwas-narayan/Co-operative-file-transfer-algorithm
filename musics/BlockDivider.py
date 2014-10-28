@@ -11,37 +11,48 @@ Here,BlockDivider is the class and myFunction is the function thats being called
 from exceptions import Exception
 import LoggingConfig
 import BlockCreater
-from BlockCreater import DS
+
 import logging as LOG
 class FileNotFoundException(Exception):
     pass
 
 class BlockDivider:
-      
+    length=0
     def __init__(self,filename):
+        
         try:
-            
             self.fd = open(filename,'r')
+            self.length=len(filename)
+                
         except IOError:
             LOG.error("Error file not found: [%s]" %(filename))
             raise FileNotFoundException()
             
-    def hasMoreData():
-        pass
+   
     
-    def hasData():
-        pass
+    def hasMoreData(self):
+       storage=self.fd.read()
+       if(storage==""):
+           return False
+       else:
+           return True
     
-    def getNext(self,fd,size):
-        pass
+ #   def getNext(self,fp,size):
+  #      self.fd=fp
+   #     return self.fd.read(size)
     
     def getFileContent(self):
-       try:
-            data=BlockDivider.getNext(fd,1024)
-            bc=BlockCreater(data)
-            return bc.createBlock()
-       except:
-            return bc.createEndOfFile()
+       
+       if(self.length>1024):
+            self.length=self.length-1024
+          
+            data=self.fd.read(1024)
+            be=BlockCreater(data)
+            return be.createBlock()
+       else:
+            data=self.fd.read(1024)
+            be=BlockCreater(data)
+            return be.createEndOfFile()
        
 
 if __name__ == "__main__":
@@ -49,6 +60,6 @@ if __name__ == "__main__":
     try:
         bd =BlockDivider(filename)
         data=bd.getFileContent()
-        print bd.getFileContent()
+        print data
     except FileNotFoundException:
         print ("File %s does not exist" %(filename))
