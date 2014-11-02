@@ -10,49 +10,53 @@ Here,BlockDivider is the class and myFunction is the function thats being called
 """
 from exceptions import Exception
 import LoggingConfig
-import BlockCreater
-
+from BlockCreater import BlockCreater,DS
+import os
 import logging as LOG
 class FileNotFoundException(Exception):
     pass
 
+FILE_MAX_LENGTH=1024
+def getSize(filename):
+    st = os.stat(filename)
+    return st.st_size
+    
 class BlockDivider:
     length=0
     def __init__(self,filename):
-        
+        self.bc=BlockC()
         try:
             self.fd = open(filename,'r')
-            self.length=len(filename)
+             self.length=getSize(filename)
                 
         except IOError:
             LOG.error("Error file not found: [%s]" %(filename))
             raise FileNotFoundException()
-            
+             print "Error"
    
     
     def hasMoreData(self):
-       storage=self.fd.read()
-       if(storage==""):
-           return False
-       else:
-           return True
-    
- #   def getNext(self,fp,size):
-  #      self.fd=fp
-   #     return self.fd.read(size)
+      if self.length>0:
+            print self.length
+            return True
+        else:
+            return False   
     
     def getFileContent(self):
        
-       if(self.length>1024):
-            self.length=self.length-1024
-          
-            data=self.fd.read(1024)
-            be=BlockCreater(data)
-            return be.createBlock()
-       else:
-            data=self.fd.read(1024)
-            be=BlockCreater(data)
-            return be.createEndOfFile()
+       if(self.length>FILE_MAX_LENGTH):
+            print self.length
+            
+            self.data=self.fd.read(FILE_MAX_LENGTH)
+            be=self.bc.createBlock(self.data)
+        else:
+            self.data=self.fd.read()
+            print self.length
+            print "End"
+            be=self.bc.createEndOfFile(self.data)
+        self.length=self.length-FILE_MAX_LENGTH
+        return be
+        
        
 
 if __name__ == "__main__":
