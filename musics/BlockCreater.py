@@ -6,7 +6,7 @@ class DS:
     CONTENT="CONTENT"
     CONTENT_TYPE="CONTENT_TYPE"
     DATA=0
-    ID=1/
+    ID=1
     EOF=5
 d={}
 class BlockCreater():

@@ -24,38 +24,39 @@ def getSize(filename):
 class BlockDivider:
     length=0
     def __init__(self,filename):
-        self.bc=BlockC()
+        self.bc=BlockCreater()
         try:
             self.fd = open(filename,'r')
-             self.length=getSize(filename)
+            self.length=getSize(filename)
                 
         except IOError:
             LOG.error("Error file not found: [%s]" %(filename))
             raise FileNotFoundException()
-             print "Error"
+            print "Error"
    
     
     def hasMoreData(self):
       if self.length>0:
             print self.length
             return True
-        else:
+      else:
             return False   
     
     def getFileContent(self):
        
        if(self.length>FILE_MAX_LENGTH):
+       
             print self.length
-            
             self.data=self.fd.read(FILE_MAX_LENGTH)
             be=self.bc.createBlock(self.data)
-        else:
-            self.data=self.fd.read()
-            print self.length
-            print "End"
-            be=self.bc.createEndOfFile(self.data)
-        self.length=self.length-FILE_MAX_LENGTH
-        return be
+       else:
+       
+           self.data=self.fd.read()
+           print self.length
+           print "End"
+           be=self.bc.createEndOfFile(self.data)
+       self.length=self.length-FILE_MAX_LENGTH
+       return be
         
        
 
