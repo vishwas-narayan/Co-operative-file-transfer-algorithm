@@ -10,12 +10,14 @@ Here,BlockDivider is the class and myFunction is the function thats being called
 """
 from exceptions import Exception
 import LoggingConfig
-from BlockCreater import BlockCreater,DS
+from BlockCreater import BlockCreator,DS
 import os
 import logging as LOG
+import random
 class FileNotFoundException(Exception):
     pass
 
+    
 FILE_MAX_LENGTH=1024
 def getSize(filename):
     st = os.stat(filename)
@@ -23,8 +25,8 @@ def getSize(filename):
     
 class BlockDivider:
     length=0
-    def __init__(self,filename):
-        self.bc=BlockCreater()
+    def __init__(self,filename,Id):
+        self.bc=BlockCreator(Id)
         try:
             self.fd = open(filename,'r')
             self.length=getSize(filename)

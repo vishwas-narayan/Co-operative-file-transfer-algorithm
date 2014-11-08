@@ -3,21 +3,24 @@ import tempfile
 from twisted.internet import reactor, protocol
 import requests
 import logging as LOGI
-from BlockDivider import DS
+from BlockCreater import DS, BlockCreater
 class EchoClient(protocol.Protocol):
     def __init__(self,id=None):
         self.id=id;
     processId=0
     def connectionMade(self):
         variable=raw_input("enter filename: ")
-        self.transport.write("GET " +str(variable))
+        self.transport.write(BlockCreater().createInit())
     def dataReceived(self,data):
         print type(data)
+        self.transport.write("GET " +str(variable))
+
         print "contents inside the file %s" %(data)
-        f=open("newfile.txt",'w')     
+        f=open("newfile.txt",'a')     
         try:
             d=json.loads(data)
             print type(d)
+          
             f.write(d[DS.CONTENT])   
             print "Data received: %s" %(str(data))
             f.close()         

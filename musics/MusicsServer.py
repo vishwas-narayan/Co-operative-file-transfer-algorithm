@@ -18,40 +18,47 @@ from twisted.internet import protocol, reactor
 from signal import SIGINT, signal
 from sys import exit
 import logging as LOG
-"""import LoggingConfig"""
-from BlockDivider import BlockDivider, FileNotFoundException,BlockCreator
+import LoggingConfig
+from BlockDivider import BlockDivider, FileNotFoundException,BlockCreator,DS
+
 from Validation import Validation, ValidationException
 import os
 import json
 
-i=1
-j=100
-a=[0]*900
-while(j<1000 and i<900):
-    a[i]=j
-    j=j+1
-    i=i+1
+def ranGenerator():
+    import random
+    x=random.randint(1,100)
+    return x 
+
 class Echo(protocol.Protocol):
-    connections=0             
+    connections=0
     def connectionMade(self):
+              
         Echo.connections+=1               
         LOG.debug("Total connections: %d",Echo.connections)
 
     def dataReceived(self, data):
+        print data
         LOG.info("Received data from client: %s" ,data)
-         
+        d=json.loads(data)
+        print type(d)
+        ID=None
+        if(d[DS.CONTENT_TYPE]==DS.INIT):
+            ID=ranGenerator()
+        self.transport.write(BlockCreator(ID).createInit())
+        
         try:
-          
+           
             v =Validation()
             LOG.info ("Current working directory %s" %(os.getcwd()))
             filename=v.validate(data)[1]
             LOG.info ("filename validated %s " %(filename))
-            bd=BlockDivider(filename)
             LOG.info ("File exists")
-            
-            self.transport.write(json.dumps(bd.getFileContent()))
+            bd=BlockDivider(filename,ID)
+            while(bd.hasMoreData()):
+                data=bd.getFileContent()
+                self.transport.write(json.dumps(data))
             LOG.info ("File contents sent")
-
         except ValidationException:
             responseContent="Invalid query: %s" %(data)
             self.transport.write(responseContent)
