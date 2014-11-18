@@ -32,40 +32,44 @@ def ranGenerator():
 
 class Echo(protocol.Protocol):
     connections=0
+    NOC={}   #No of connections
+    def __init__(self):
+        self.id=None
+        
     def connectionMade(self):
-              
         Echo.connections+=1               
         LOG.debug("Total connections: %d",Echo.connections)
 
     def dataReceived(self, data):
-        print data
         LOG.info("Received data from client: %s" ,data)
         d=json.loads(data)
-        print type(d)
-        ID=None
-        if(d[DS.CONTENT_TYPE]==DS.INIT):
-            ID=ranGenerator()
-        self.transport.write(BlockCreator(ID).createInit())
+        LOG.debug( type(d))
         
-        try:
-           
-            v =Validation()
-            LOG.info ("Current working directory %s" %(os.getcwd()))
-            filename=v.validate(data)[1]
-            LOG.info ("filename validated %s " %(filename))
-            LOG.info ("File exists")
-            bd=BlockDivider(filename,ID)
-            while(bd.hasMoreData()):
-                data=bd.getFileContent()
-                self.transport.write(json.dumps(data))
-            LOG.info ("File contents sent")
-        except ValidationException:
-            responseContent="Invalid query: %s" %(data)
-            self.transport.write(responseContent)
-        except FileNotFoundException:
-            LOG.info ("File not found")
-            responseContent="FileNotFound : %s" %(filename)
-            self.transport.write(responseContent)
+        if(d[DS.CONTENT_TYPE]==DS.INIT):
+            self.id=ranGenerator()          
+            Echo.NOC[self.id]=1
+            self.transport.write(BlockCreator(self.id).createInit())
+        if d[DS.CONTENT_TYPE]==DS.OPERATION:
+            try:
+                v =Validation()
+                LOG.info ("Current working directory %s" %(os.getcwd()))
+                filename=v.validate(d[DS.CONTENT])[1]
+                LOG.info ("filename validated %s " %(filename))
+                LOG.info ("File exists")
+                bd=BlockDivider(filename,d[DS.ID])
+                if bd.hasMoreData():
+                    data=bd.getFileContent()
+                    LOG.debug("Server sending data : %s" %(str(data)))
+                    self.transport.write(json.dumps(data))
+                    
+                LOG.info ("File contents sent")
+            except ValidationException:
+                responseContent="Invalid query: %s" %(data)
+                self.transport.write(responseContent)
+            except FileNotFoundException:
+                LOG.info ("File not found")
+                responseContent="FileNotFound : %s" %(filename)
+                self.transport.write(responseContent)
 
         
 

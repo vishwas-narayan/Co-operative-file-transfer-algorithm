@@ -38,6 +38,7 @@ class BlockDivider:
    
     
     def hasMoreData(self):
+    
       if self.length>0:
             print self.length
             return True

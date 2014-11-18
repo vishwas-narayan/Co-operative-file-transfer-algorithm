@@ -5,10 +5,12 @@ class DS:
     BLOCKSIZE="BLOCKSIZE"
     CONTENT="CONTENT"
     CONTENT_TYPE="CONTENT_TYPE"
-    DATA=0
-    INIT=2
-    ID=1
-    EOF=5
+    DATA="DATA"
+    OPERATION="OPERATION"
+    INIT="INIT"
+    ID="ID"
+    EOF="EOF"
+    ACKNOWLEDGEMENT=0    
 d={}
 import json
 class BlockCreator():
@@ -26,6 +28,14 @@ class BlockCreator():
         d[DS.CONTENT_TYPE]=DS.DATA
         self.blockNum+=1  
         return d
+    
+    def forOperation(self,data):
+        d={}
+        d[DS.CONTENT_TYPE]=DS.OPERATION
+        d[DS.CONTENT]=data
+        d[DS.ID]=self.myid
+        print self.myid
+        return json.dumps(d)
     
     def createEndOfFile(self,data):
         d=self.createBlock(data)

@@ -2,31 +2,33 @@ import json
 import tempfile
 from twisted.internet import reactor, protocol
 import requests
-import logging as LOGI
-from BlockCreater import DS, BlockCreater
+import logging as LOG
+import LoggingConfig
+from BlockCreater import DS, BlockCreator
 class EchoClient(protocol.Protocol):
-    def __init__(self,id=None):
-        self.id=id;
-    processId=0
+   
     def connectionMade(self):
-        variable=raw_input("enter filename: ")
-        self.transport.write(BlockCreater().createInit())
+        self.variable=raw_input("enter filename: ")
+        self.transport.write(BlockCreator().createInit())
     def dataReceived(self,data):
-        print type(data)
-        self.transport.write("GET " +str(variable))
-
-        print "contents inside the file %s" %(data)
-        f=open("newfile.txt",'a')     
-        try:
-            d=json.loads(data)
-            print type(d)
-          
-            f.write(d[DS.CONTENT])   
-            print "Data received: %s" %(str(data))
-            f.close()         
-        except:
-            print "Error in converting from json"
-        self.transport.loseConnection()
+        LOG.debug("In client : %s" %str(type(data)))
+        
+        LOG.debug ("Received from server.")
+        d=json.loads(data)
+        if(d[DS.CONTENT_TYPE]==DS.INIT):
+            
+            self.id=d[DS.ID]
+            self.transport.write(BlockCreator(self.id).forOperation(("GET " +str(self.variable))))
+            
+        if(d[DS.CONTENT_TYPE]==DS.DATA):
+            f=open("newfile.txt",'a')     
+            try: 
+                f.write(d[DS.CONTENT])
+                d[DS.ACKNOWLEDGEMENT]=1
+                f.close()         
+            except:
+                LOG.debug( "Error in converting from json")
+                self.transport.loseConnection()
 class EchoFactory(protocol.ClientFactory):
     def buildProtocol(self, addr):
         return EchoClient()
