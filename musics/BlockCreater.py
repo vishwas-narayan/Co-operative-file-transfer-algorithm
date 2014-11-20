@@ -10,8 +10,10 @@ class DS:
     INIT="INIT"
     ID="ID"
     EOF="EOF"
-    ACKNOWLEDGEMENT=0    
-d={}
+    ACK="ACK"
+    CHECK="CHECK"  
+    NOCHECK="NOCHECK"
+
 import json
 class BlockCreator():
     
@@ -26,6 +28,7 @@ class BlockCreator():
         d[DS.BLOCKSIZE]=len(data)
         d[DS.CONTENT]=data
         d[DS.CONTENT_TYPE]=DS.DATA
+        d[DS.ACK]=DS.ACK
         self.blockNum+=1  
         return d
     
@@ -34,6 +37,8 @@ class BlockCreator():
         d[DS.CONTENT_TYPE]=DS.OPERATION
         d[DS.CONTENT]=data
         d[DS.ID]=self.myid
+        d[DS.ACK]=DS.ACK
+        d[DS.CHECK]=DS.CHECK
         print self.myid
         return json.dumps(d)
     
@@ -46,15 +51,23 @@ class BlockCreator():
         d[DS.CONTENT_TYPE]=DS.INIT
         d[DS.ID]=self.myid
         return json.dumps(d)
-
+    def createBlockForClient(self):
+        print "inside client block"
+        d={}
+        d[DS.CONTENT_TYPE]=DS.OPERATION
+        d[DS.ACK]=DS.ACK
+        d[DS.ID]=self.myid
+        d[DS.CHECK]=DS.NOCHECK
+        print d
+        return json.dumps(d)
 if __name__ == "__main__":
     filename=raw_input("ENTER FILE NAME: ")
     fp=open(filename,'r')
     try:
-           bc=BlockCreator()
-           data=fp.read()
-           d=bc.createBlock()
-           print d        
+        bc=BlockCreator()
+        data=fp.read()
+        d=bc.createBlock()
+        print d        
     except FileNotFoundException:
         print ("File %s does not exist" %(filename))
       

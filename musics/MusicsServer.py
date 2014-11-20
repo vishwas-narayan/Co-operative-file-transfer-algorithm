@@ -49,20 +49,24 @@ class Echo(protocol.Protocol):
             self.id=ranGenerator()          
             Echo.NOC[self.id]=1
             self.transport.write(BlockCreator(self.id).createInit())
-        if d[DS.CONTENT_TYPE]==DS.OPERATION:
+        if(d[DS.CONTENT_TYPE]==DS.OPERATION):
             try:
-                v =Validation()
+                #if(d[DS.CHECK]==DS.CHECK):
+                v=Validation()
                 LOG.info ("Current working directory %s" %(os.getcwd()))
                 filename=v.validate(d[DS.CONTENT])[1]
                 LOG.info ("filename validated %s " %(filename))
                 LOG.info ("File exists")
                 bd=BlockDivider(filename,d[DS.ID])
-                if bd.hasMoreData():
-                    data=bd.getFileContent()
-                    LOG.debug("Server sending data : %s" %(str(data)))
-                    self.transport.write(json.dumps(data))
-                    
-                LOG.info ("File contents sent")
+                print 2
+                if(d[DS.ACK]==DS.ACK or d[DS.CHECK]==DS.NOCHECK): 
+                    print 3               
+                    if(bd.hasMoreData()):
+                        data=bd.getFileContent()
+                        LOG.debug("Server sending data : %s" %(str(data)))
+                        print data
+                        self.transport.write(json.dumps(data))
+                        LOG.info ("File contents sent")
             except ValidationException:
                 responseContent="Invalid query: %s" %(data)
                 self.transport.write(responseContent)
