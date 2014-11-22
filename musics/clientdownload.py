@@ -20,7 +20,7 @@ class EchoClient(protocol.Protocol):
             self.transport.write(BlockCreator(self.id).forOperation(("GET " +str(self.variable))))
             
         if(d[DS.CONTENT_TYPE]==DS.DATA):
-            f=open("newfile.txt",'w')     
+            f=open("newfile.txt",'a')     
             try: 
                 f.write(d[DS.CONTENT])
                 print d[DS.CONTENT]
@@ -37,6 +37,7 @@ class EchoClient(protocol.Protocol):
                 f.close()
             except:
                 print "Error in EOF"
+            self.transport.loseConnection()   
 class EchoFactory(protocol.ClientFactory):
     def buildProtocol(self, addr):
         return EchoClient()

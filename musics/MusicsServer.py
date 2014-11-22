@@ -33,8 +33,10 @@ def ranGenerator():
 class Echo(protocol.Protocol):
     connections=0
     NOC={}   #No of connections
+    
     def __init__(self):
         self.id=None
+        self.filename=None
         
     def connectionMade(self):
         Echo.connections+=1               
@@ -46,39 +48,47 @@ class Echo(protocol.Protocol):
         LOG.debug( type(d))
         
         if(d[DS.CONTENT_TYPE]==DS.INIT):
-            self.id=ranGenerator()          
-            Echo.NOC[self.id]=1
-            self.transport.write(BlockCreator(self.id).createInit())
-        if(d[DS.CONTENT_TYPE]==DS.OPERATION):
-            try:
-                #if(d[DS.CHECK]==DS.CHECK):
-                v=Validation()
-                LOG.info ("Current working directory %s" %(os.getcwd()))
-                filename=v.validate(d[DS.CONTENT])[1]
-                LOG.info ("filename validated %s " %(filename))
-                LOG.info ("File exists")
-                bd=BlockDivider(filename,d[DS.ID])
-                print 2
-                if(d[DS.ACK]==DS.ACK or d[DS.CHECK]==DS.NOCHECK): 
-                    print 3               
-                    if(bd.hasMoreData()):
-                        data=bd.getFileContent()
-                        LOG.debug("Server sending data : %s" %(str(data)))
-                        print data
-                        self.transport.write(json.dumps(data))
-                        LOG.info ("File contents sent")
-            except ValidationException:
-                responseContent="Invalid query: %s" %(data)
-                self.transport.write(responseContent)
-            except FileNotFoundException:
-                LOG.info ("File not found")
-                responseContent="FileNotFound : %s" %(filename)
-                self.transport.write(responseContent)
+            if(d[DS.ID]==None):
+                self.id=ranGenerator()          
+                while(NOC.has_key(self.id)):
+                    self.id=ranGenerator() 
+                Echo.NOC[self.id]=1
+                self.transport.write(BlockCreator(self.id).createInit())
+            print NOC
+            if(NOC.has_key(d[DS.ID])):
+                Echo.NOC[self.id]+=1
+                self.transport.write(BlockCreator(self.id).createInit())
+            if(d[DS.CONTENT_TYPE]==DS.OPERATION):
+                try:
+                    if(d[DS.CHECK]==DS.CHECK):
+                        v=Validation()
+                        LOG.info ("Current working directory %s" %(os.getcwd()))
+                        self.filename=v.validate(d[DS.CONTENT])[1]
+                        LOG.info ("filename validated %s " %(self.filename))
+                        LOG.info ("File exists")
+                        self.bd=BlockDivider(self.filename,d[DS.ID])
+                    
+                    if(d[DS.ACK]==DS.ACK): 
+                                       
+                        if(self.bd.hasMoreData()):
+                            data=self.bd.getFileContent()
+                            LOG.debug("Server sending data : %s" %(str(data)))
+                            print data
+                            self.transport.write(json.dumps(data))
+                            LOG.info ("File contents sent")
+                except ValidationException:
+                    responseContent="Invalid query: %s" %(data)
+                    self.transport.write(responseContent)
+                except FileNotFoundException:
+                    LOG.info ("File not found")
+                    responseContent="FileNotFound : %s" %(self.filename)
+                    self.transport.write(responseContent)
 
         
 
     def connectionLost(self,reason):
         Echo.connections-=1
+        
         LOG.debug ("ConnectionLost, Total connections: %d " , Echo.connections)
         
     @staticmethod

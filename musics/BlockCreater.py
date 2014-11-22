@@ -1,3 +1,4 @@
+import logging as LOG
 class FileNotFoundException(Exception):
     pass
 class DS:
@@ -52,7 +53,7 @@ class BlockCreator():
         d[DS.ID]=self.myid
         return json.dumps(d)
     def createBlockForClient(self):
-        print "inside client block"
+        LOG.info("Inside client ")
         d={}
         d[DS.CONTENT_TYPE]=DS.OPERATION
         d[DS.ACK]=DS.ACK
