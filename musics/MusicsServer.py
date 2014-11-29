@@ -50,15 +50,14 @@ class Echo(protocol.Protocol):
         if(d[DS.CONTENT_TYPE]==DS.INIT):
             if(d[DS.ID]==None):
                 self.id=ranGenerator()          
-                while(NOC.has_key(self.id)):
+                while(Echo.NOC.has_key(self.id)):
                     self.id=ranGenerator() 
                 Echo.NOC[self.id]=1
                 self.transport.write(BlockCreator(self.id).createInit())
-            print NOC
-            if(NOC.has_key(d[DS.ID])):
+            if(Echo.NOC.has_key(d[DS.ID])):
                 Echo.NOC[self.id]+=1
                 self.transport.write(BlockCreator(self.id).createInit())
-            if(d[DS.CONTENT_TYPE]==DS.OPERATION):
+        if(d[DS.CONTENT_TYPE]==DS.OPERATION):
                 try:
                     if(d[DS.CHECK]==DS.CHECK):
                         v=Validation()
