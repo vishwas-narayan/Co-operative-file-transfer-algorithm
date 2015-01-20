@@ -25,6 +25,10 @@ from Validation import Validation, ValidationException
 import os
 import json
 
+def getSize(filename):
+    st = os.stat(filename)
+    return st.st_size
+
 def ranGenerator():
     import random
     x=random.randint(1,100)
@@ -65,9 +69,18 @@ class Echo(protocol.Protocol):
                         self.filename=v.validate(d[DS.CONTENT])[1]
                         LOG.info ("filename validated %s " %(self.filename))
                         LOG.info ("File exists")
+                        """1.this module is to check for the filesize. 
+                           if the filesize is greater than 1024bytes,then send reInit to client""" 
+                        if(getSize(self.filename)>1024):
+                            self.transport.write(BlockCreator(self.id).createReinit()) 
+                            
+                        self.bd=BlockDivider(self.filename,d[DS.ID])
+                    elif(d[DS.CHECK]==DS.INSTANCE):
+                        print 7
+                        print d[DS.ID]
                         self.bd=BlockDivider(self.filename,d[DS.ID])
                     
-                    if(d[DS.ACK]==DS.ACK): 
+                    elif(d[DS.ACK]==DS.ACK): 
                                        
                         if(self.bd.hasMoreData()):
                             data=self.bd.getFileContent()
@@ -99,7 +112,8 @@ class Echo(protocol.Protocol):
 class EchoFactory(protocol.Factory):
     def buildProtocol(self, addr):
         return Echo()
+echoFactory=EchoFactory()
 if __name__=="__main__":
     signal(SIGINT,Echo.sigintHandler)
-    reactor.listenTCP(8000, EchoFactory())
+    reactor.listenTCP(8000, echoFactory)
     reactor.run()

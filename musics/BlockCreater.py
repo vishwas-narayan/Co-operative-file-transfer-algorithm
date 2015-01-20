@@ -14,14 +14,32 @@ class DS:
     ACK="ACK"
     CHECK="CHECK"  
     NOCHECK="NOCHECK"
+    REINIT="REINIT"
+    INSTANCE="INSTANCE"
 
 import json
 class BlockCreator():
     
     def __init__(self,myid=None):
         self.blockNum=1
-        self.myid=myid    
+        self.myid=myid 
         
+    def createReinit(self):
+    """2.This module is used to create 'REINIT' datastructure"""   
+        d={}
+        d[DS.CONTENT_TYPE]=DS.REINIT
+        d[DS.ID]=self.myid
+        print 1
+        return json.dumps(d) 
+        
+    def instanceMessageToServer(self):
+        d={}
+        d[DS.CHECK]=DS.INSTANCE
+        d[DS.CONTENT_TYPE]=DS.OPERATION
+        d[DS.ID]=self.myid
+        print 6
+        return json.dumps(d)
+     
     def createBlock(self,data):
         d={}
         d[DS.ID]=self.myid
