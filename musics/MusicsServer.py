@@ -70,13 +70,12 @@ class Echo(protocol.Protocol):
                         LOG.info ("filename validated %s " %(self.filename))
                         LOG.info ("File exists")
                         """1.this module is to check for the filesize. 
-                           if the filesize is greater than 1024bytes,then send reInit to client""" 
+                        if the filesize is greater than 1024bytes,then send reInit to client""" 
                         if(getSize(self.filename)>1024):
                             self.transport.write(BlockCreator(self.id).createReinit()) 
                             
                         self.bd=BlockDivider(self.filename,d[DS.ID])
                     elif(d[DS.CHECK]==DS.INSTANCE):
-                        print 7
                         print d[DS.ID]
                         self.bd=BlockDivider(self.filename,d[DS.ID])
                     

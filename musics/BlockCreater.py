@@ -25,11 +25,10 @@ class BlockCreator():
         self.myid=myid 
         
     def createReinit(self):
-    """2.This module is used to create 'REINIT' datastructure"""   
+        """2.This module is used to create 'REINIT' datastructure"""   
         d={}
         d[DS.CONTENT_TYPE]=DS.REINIT
         d[DS.ID]=self.myid
-        print 1
         return json.dumps(d) 
         
     def instanceMessageToServer(self):

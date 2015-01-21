@@ -7,13 +7,13 @@ import LoggingConfig
 from BlockCreater import DS, BlockCreator
 class EchoClient(protocol.Protocol):
     def __init__(self,echoFactory,Ide=None):
-    """5.To make the created client's id same"""
+        """5.To make the created client's id same"""
         self.ef=echoFactory
         self.id=Ide
 
     def connectionMade(self):
-    """6.This module is for checking whether this is first connection of the client.
-         If it is not then the created instance sends message to the server about its creation"""
+        """6.This module is for checking whether this is first connection of the client.
+        If it is not then the created instance sends message to the server about its creation"""
         if(self.id==None):
             self.variable=raw_input("enter filename: ")
             self.transport.write(BlockCreator().createInit())
@@ -29,8 +29,8 @@ class EchoClient(protocol.Protocol):
             self.id=d[DS.ID]
             self.transport.write(BlockCreator(self.id).forOperation(("GET " +str(self.variable))))
         if(d[DS.CONTENT_TYPE]==DS.REINIT):  
-        """3.This module checks whether the server requests for creating another instance.
-              And sends the message[in the form of id] to the EchoFactory which actually creates the instance"""
+            """3.This module checks whether the server requests for creating another instance.
+            And sends the message[in the form of id] to the EchoFactory which actually creates the instance"""
             self.ef.getMessageFromClient(self.id)
             
         if(d[DS.CONTENT_TYPE]==DS.DATA):
@@ -59,8 +59,8 @@ class EchoFactory(protocol.ClientFactory):
         return EchoClient(self,self.ide)
         
     def getMessageFromClient(self,Id):
-    """4.This method iniates the connection with the server but with the id.
-       So that EchoFactory uses the id for creating the client"""
+        """4.This method iniates the connection with the server but with the id.
+        So that EchoFactory uses the id for creating the client"""
         reactor.connectTCP("localhost",8000,EchoFactory(Id))    
 
     def clientConnectionFailed(self, connector, reason):
