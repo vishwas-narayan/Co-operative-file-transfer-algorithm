@@ -37,10 +37,12 @@ def ranGenerator():
 class Echo(protocol.Protocol):
     connections=0
     NOC={}   #No of connections
+    identifier={}   #For storing the server id wrt client id
     
-    def __init__(self):
-        self.id=None
+    def __init__(self,sid):
+        self.sid=sid
         self.filename=None
+        LOG.debug("Server id created")
         
     def connectionMade(self):
         Echo.connections+=1               
@@ -57,9 +59,7 @@ class Echo(protocol.Protocol):
                 while(Echo.NOC.has_key(self.id)):
                     self.id=ranGenerator() 
                 Echo.NOC[self.id]=1
-                self.transport.write(BlockCreator(self.id).createInit())
-            if(Echo.NOC.has_key(d[DS.ID])):
-                Echo.NOC[self.id]+=1
+                Echo.identifier[self.sid]=self.id
                 self.transport.write(BlockCreator(self.id).createInit())
         if(d[DS.CONTENT_TYPE]==DS.OPERATION):
                 try:
@@ -69,33 +69,42 @@ class Echo(protocol.Protocol):
                         self.filename=v.validate(d[DS.CONTENT])[1]
                         LOG.info ("filename validated %s " %(self.filename))
                         LOG.info ("File exists")
+                        self.bd=BlockDivider(self.filename,d[DS.ID])
                         """1.this module is to check for the filesize. 
-                        if the filesize is greater than 1024bytes,then send reInit to client""" 
+                        if the filesize is greater than 1024bytes,then send reInit to client.
+                        increase the instance count in NOC dict"""           
                         if(getSize(self.filename)>1024):
-                            self.transport.write(BlockCreator(self.id).createReinit()) 
-                            
-                        self.bd=BlockDivider(self.filename,d[DS.ID])
+                            Echo.NOC[self.id]+=1
+                            self.transport.write(BlockCreator(self.id).createReinit())                             
+                        
                     elif(d[DS.CHECK]==DS.INSTANCE):
-                        print d[DS.ID]
-                        self.bd=BlockDivider(self.filename,d[DS.ID])
+                        LOG.debug("Message about client instance creation is recieved")
+                        Echo.identifier[self.sid]=d[DS.ID]                        
                     
-                    elif(d[DS.ACK]==DS.ACK): 
-                                       
-                        if(self.bd.hasMoreData()):
-                            data=self.bd.getFileContent()
-                            LOG.debug("Server sending data : %s" %(str(data)))
-                            print data
-                            self.transport.write(json.dumps(data))
-                            LOG.info ("File contents sent")
+                        if(d[DS.ACK]==DS.ACK): 
+                            i=0
+                            lists=[0] #yet to be implemented               
+                            if(self.bd.hasMoreData()):
+                                data=self.bd.getFileContent()
+                                LOG.debug("Server sending data : %s" %(str(data)))
+                                print data                                
+                                self.transport.write(json.dumps(data))
+                                LOG.info ("File contents sent")
+                                
+                    if(getSize(self.filename)<1024):
+                        data=self.bd.getFileContent()
+                        LOG.debug("Server sending data : %s" %(str(data)))
+                        print data
+                        self.transport.write(json.dumps(data))
+                        LOG.info ("File contents sent")
+
                 except ValidationException:
                     responseContent="Invalid query: %s" %(data)
                     self.transport.write(responseContent)
                 except FileNotFoundException:
                     LOG.info ("File not found")
                     responseContent="FileNotFound : %s" %(self.filename)
-                    self.transport.write(responseContent)
-
-        
+                    self.transport.write(responseContent)    
 
     def connectionLost(self,reason):
         Echo.connections-=1
@@ -109,8 +118,10 @@ class Echo(protocol.Protocol):
         reactor.stop()
 
 class EchoFactory(protocol.Factory):
+    sid=0
     def buildProtocol(self, addr):
-        return Echo()
+        self.sid+=1
+        return Echo(self.sid)
 echoFactory=EchoFactory()
 if __name__=="__main__":
     signal(SIGINT,Echo.sigintHandler)

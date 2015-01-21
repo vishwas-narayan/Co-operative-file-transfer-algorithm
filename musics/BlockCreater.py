@@ -57,6 +57,7 @@ class BlockCreator():
         d[DS.ID]=self.myid
         d[DS.ACK]=DS.ACK
         d[DS.CHECK]=DS.CHECK
+        d[DS.NOCHECK]=DS.NOCHECK
         print self.myid
         return json.dumps(d)
     

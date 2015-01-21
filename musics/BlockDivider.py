@@ -25,6 +25,7 @@ def getSize(filename):
     
 class BlockDivider:
     length=0
+    listOfBlocks=[0]#yet to be implemented
     def __init__(self,filename,Id):
         self.bc=BlockCreator(Id)
         try:
@@ -34,8 +35,7 @@ class BlockDivider:
         except IOError:
             LOG.error("Error file not found: [%s]" %(filename))
             raise FileNotFoundException()
-            print "Error"
-   
+            print "Error" 
     
     def hasMoreData(self):
     
@@ -59,9 +59,7 @@ class BlockDivider:
            print "End"
            be=self.bc.createEndOfFile(self.data)
        self.length=self.length-FILE_MAX_LENGTH
-       return be
-        
-       
+       return be     
 
 if __name__ == "__main__":
     filename=raw_input("Enter filename: ")
