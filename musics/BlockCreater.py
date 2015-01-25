@@ -11,12 +11,9 @@ class DS:
     INIT="INIT"
     ID="ID"
     EOF="EOF"
-    ACK="ACK"
-    CHECK="CHECK"  
-    NOCHECK="NOCHECK"
+    ACK="ACK"  
     REINIT="REINIT"
-    INSTANCE="INSTANCE"
-
+    
 import json
 class BlockCreator():
     
@@ -33,10 +30,8 @@ class BlockCreator():
         
     def instanceMessageToServer(self):
         d={}
-        d[DS.CHECK]=DS.INSTANCE
         d[DS.CONTENT_TYPE]=DS.OPERATION
         d[DS.ID]=self.myid
-        print 6
         return json.dumps(d)
      
     def createBlock(self,data):
@@ -56,7 +51,6 @@ class BlockCreator():
         d[DS.CONTENT]=data
         d[DS.ID]=self.myid
         d[DS.ACK]=DS.ACK
-        d[DS.CHECK]=DS.CHECK
         print self.myid
         return json.dumps(d)
     
@@ -75,7 +69,6 @@ class BlockCreator():
         d[DS.CONTENT_TYPE]=DS.OPERATION
         d[DS.ACK]=DS.ACK
         d[DS.ID]=self.myid
-        d[DS.CHECK]=DS.NOCHECK
         print d
         return json.dumps(d)
 if __name__ == "__main__":

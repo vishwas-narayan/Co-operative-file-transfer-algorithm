@@ -63,33 +63,27 @@ class Echo(protocol.Protocol):
                 self.transport.write(BlockCreator(self.id).createInit())
         if(d[DS.CONTENT_TYPE]==DS.OPERATION):
                 try:
-                    if(d[DS.CHECK]==DS.CHECK):
-                        v=Validation()
-                        LOG.info ("Current working directory %s" %(os.getcwd()))
-                        self.filename=v.validate(d[DS.CONTENT])[1]
-                        LOG.info ("filename validated %s " %(self.filename))
-                        LOG.info ("File exists")
-                        self.bd=BlockDivider(self.filename,d[DS.ID])
-                        """1.this module is to check for the filesize. 
-                        if the filesize is greater than 1024bytes,then send reInit to client.
-                        increase the instance count in NOC dict"""           
-                        if(getSize(self.filename)>1024):
-                            Echo.NOC[self.id]+=1
-                            self.transport.write(BlockCreator(self.id).createReinit())                             
+                    v=Validation()
+                    LOG.info ("Current working directory %s" %(os.getcwd()))
+                    self.filename=v.validate(d[DS.CONTENT])[1]
+                    LOG.info ("filename validated %s " %(self.filename))
+                    LOG.info ("File exists")
+                    self.bd=BlockDivider(self.filename,d[DS.ID])
+                    """1.this module is to check for the filesize. 
+                    if the filesize is greater than 1024bytes,then send reInit to client.
+                    increase the instance count in NOC dict"""
+                    if(getSize(self.filename)>1024):
+                        Echo.NOC[self.id]+=1
+                        self.transport.write(BlockCreator(self.id).createReinit()) 
+                        LOG.debug("Filesize is checked and instance is created")                            
                         
-                    elif(d[DS.CHECK]==DS.INSTANCE):
-                        LOG.debug("Message about client instance creation is recieved")
-                        Echo.identifier[self.sid]=d[DS.ID]                        
-                    
-                        if(d[DS.ACK]==DS.ACK): 
-                            i=0
-                            lists=[0] #yet to be implemented               
-                            if(self.bd.hasMoreData()):
-                                data=self.bd.getFileContent()
-                                LOG.debug("Server sending data : %s" %(str(data)))
-                                print data                                
-                                self.transport.write(json.dumps(data))
-                                LOG.info ("File contents sent")
+                    if(d[DS.ACK]==DS.ACK): 
+                        if(self.bd.hasMoreData()):
+                            data=self.bd.getFileContent()
+                            LOG.debug("Server sending data : %s" %(str(data)))
+                            print data                                
+                            self.transport.write(json.dumps(data))
+                            LOG.info ("File contents sent")
                                 
                     if(getSize(self.filename)<1024):
                         data=self.bd.getFileContent()
