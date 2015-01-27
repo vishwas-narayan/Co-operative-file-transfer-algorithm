@@ -19,16 +19,10 @@ from signal import SIGINT, signal
 from sys import exit
 import logging as LOG
 import LoggingConfig
-from BlockDivider import BlockDivider, FileNotFoundException,BlockCreator,DS
-
+from BlockDivider import BlockDivider, FileNotFoundException,BlockCreator,DS,Size
 from Validation import Validation, ValidationException
 import os
 import json
-
-def getSize(filename):
-    st = os.stat(filename)
-    return st.st_size
-
 def ranGenerator():
     import random
     x=random.randint(1,100)
@@ -37,8 +31,7 @@ def ranGenerator():
 class Echo(protocol.Protocol):
     connections=0
     NOC={}   #No of connections
-    identifier={}   #For storing the server id wrt client id
-    
+    identifier={}   #For storing the server id wrt client id   
     def __init__(self,sid):
         self.sid=sid
         self.filename=None
@@ -63,35 +56,28 @@ class Echo(protocol.Protocol):
                 self.transport.write(BlockCreator(self.id).createInit())
         if(d[DS.CONTENT_TYPE]==DS.OPERATION):
                 try:
-                    v=Validation()
-                    LOG.info ("Current working directory %s" %(os.getcwd()))
-                    self.filename=v.validate(d[DS.CONTENT])[1]
-                    LOG.info ("filename validated %s " %(self.filename))
-                    LOG.info ("File exists")
-                    self.bd=BlockDivider(self.filename,d[DS.ID])
-                    """1.this module is to check for the filesize. 
-                    if the filesize is greater than 1024bytes,then send reInit to client.
-                    increase the instance count in NOC dict"""
-                    if(getSize(self.filename)>1024):
+                    if(d[DS.CHECK]==DS.CHECK):    
+                        v=Validation()
+                        LOG.info ("Current working directory %s" %(os.getcwd()))
+                        self.filename=v.validate(d[DS.CONTENT])[1]
+                        LOG.info ("filename validated %s " %(self.filename))
+                        LOG.info ("File exists")
+                        self.bd=BlockDivider(self.filename,d[DS.ID])
+                        """1.this module is to check for the filesize. 
+                        if the filesize is greater than 1024bytes,then send reInit to client.
+                        increase the instance count in NOC dict"""
+                    if((Size().getSize(self.filename)>Size.FILE_MAX_SIZE) and (Size().decisionOnInstanceCreation)):                    
                         Echo.NOC[self.id]+=1
-                        self.transport.write(BlockCreator(self.id).createReinit()) 
-                        LOG.debug("Filesize is checked and instance is created")                            
-                        
-                    if(d[DS.ACK]==DS.ACK): 
-                        if(self.bd.hasMoreData()):
-                            data=self.bd.getFileContent()
-                            LOG.debug("Server sending data : %s" %(str(data)))
-                            print data                                
-                            self.transport.write(json.dumps(data))
-                            LOG.info ("File contents sent")
-                                
-                    if(getSize(self.filename)<1024):
-                        data=self.bd.getFileContent()
-                        LOG.debug("Server sending data : %s" %(str(data)))
-                        print data
-                        self.transport.write(json.dumps(data))
-                        LOG.info ("File contents sent")
-
+                        LOG.debug("Filesize is checked and instance is created") 
+                        self.transport.write(BlockCreator(self.id).createReinit())                                                
+                    else:
+                        if(d[DS.ACK]==DS.ACK or getSize(self.filename)<Size.FILE_MAX_SIZE ):
+                            if(self.bd.hasMoreData()):
+                                data=self.bd.getFileContent()
+                                LOG.debug("Server sending data : %s" %(str(data)))
+                                print data                                
+                                self.transport.write(json.dumps(data))
+                                LOG.info ("File contents sent")
                 except ValidationException:
                     responseContent="Invalid query: %s" %(data)
                     self.transport.write(responseContent)

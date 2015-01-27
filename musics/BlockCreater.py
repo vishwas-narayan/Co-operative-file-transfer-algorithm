@@ -12,11 +12,11 @@ class DS:
     ID="ID"
     EOF="EOF"
     ACK="ACK"  
+    CHECK="CHECK"  
+    NOCHECK="NOCHECK"    
     REINIT="REINIT"
-    
 import json
 class BlockCreator():
-    
     def __init__(self,myid=None):
         self.blockNum=1
         self.myid=myid 
@@ -27,13 +27,7 @@ class BlockCreator():
         d[DS.CONTENT_TYPE]=DS.REINIT
         d[DS.ID]=self.myid
         return json.dumps(d) 
-        
-    def instanceMessageToServer(self):
-        d={}
-        d[DS.CONTENT_TYPE]=DS.OPERATION
-        d[DS.ID]=self.myid
-        return json.dumps(d)
-     
+             
     def createBlock(self,data):
         d={}
         d[DS.ID]=self.myid
@@ -51,7 +45,7 @@ class BlockCreator():
         d[DS.CONTENT]=data
         d[DS.ID]=self.myid
         d[DS.ACK]=DS.ACK
-        print self.myid
+        d[DS.CHECK]=DS.CHECK
         return json.dumps(d)
     
     def createEndOfFile(self,data):
@@ -64,12 +58,12 @@ class BlockCreator():
         d[DS.ID]=self.myid
         return json.dumps(d)
     def createBlockForClient(self):
-        LOG.info("Inside client ")
+        LOG.debug("Inside client for acknowledgement ")
         d={}
         d[DS.CONTENT_TYPE]=DS.OPERATION
         d[DS.ACK]=DS.ACK
         d[DS.ID]=self.myid
-        print d
+        d[DS.CHECK]=DS.NOCHECK
         return json.dumps(d)
 if __name__ == "__main__":
     filename=raw_input("ENTER FILE NAME: ")

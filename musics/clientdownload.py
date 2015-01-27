@@ -18,7 +18,8 @@ class EchoClient(protocol.Protocol):
             self.variable=raw_input("enter filename: ")
             self.transport.write(BlockCreator().createInit())
         else:
-            self.transport.write(BlockCreator(self.id).instanceMessageToServer())
+            LOG.debug("Created Instance makes the server check for another instance to be created")
+            self.transport.write(BlockCreator(self.id).createBlockForClient())
         
     def dataReceived(self,data):
         LOG.debug("In client : %s" %str(type(data)))
@@ -31,6 +32,7 @@ class EchoClient(protocol.Protocol):
         if(d[DS.CONTENT_TYPE]==DS.REINIT):  
             """3.This module checks whether the server requests for creating another instance.
             And sends the message[in the form of id] to the EchoFactory which actually creates the instance"""
+            LOG.debug("Reinit message recieved from server ")
             self.ef.getMessageFromClient(self.id)
             
         if(d[DS.CONTENT_TYPE]==DS.DATA):
@@ -53,15 +55,17 @@ class EchoClient(protocol.Protocol):
                 print "Error in EOF"
             self.transport.loseConnection()   
 class EchoFactory(protocol.ClientFactory):
-    def __init__(self,Id=None):
-        self.ide=Id
+    def __init__(self):
+        self.ide=None
     def buildProtocol(self, addr):
         return EchoClient(self,self.ide)
         
     def getMessageFromClient(self,Id):
         """4.This method iniates the connection with the server but with the id.
         So that EchoFactory uses the id for creating the client"""
-        reactor.connectTCP("localhost",8000,EchoFactory(Id))    
+        LOG.debug("Message to the EchoFactory from client %d" ,Id)
+        self.ide=Id
+        reactor.connectTCP("localhost",8000,self)    
 
     def clientConnectionFailed(self, connector, reason):
         print "Connection failed......"

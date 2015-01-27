@@ -16,13 +16,24 @@ import logging as LOG
 import random
 class FileNotFoundException(Exception):
     pass
-
-    
-FILE_MAX_LENGTH=1024
-def getSize(filename):
-    st = os.stat(filename)
-    return st.st_size
-    
+class Size():  
+    BLOCK_MAX_SIZE=1024
+    FILE_MAX_SIZE=1024
+    LENGTH=0
+    def getSize(self,filename): 
+        st = os.stat(filename)
+        if(Size.LENGTH==0):
+            st = os.stat(filename)
+            Size.LENGTH= st.st_size
+            Size.LENGTH-=self.FILE_MAX_SIZE#for each instance creation fileLength keeps decreasing,to end the creation
+        else:
+            Size.LENGTH-=self.FILE_MAX_SIZE
+        return st.st_size
+    def decisionOnInstanceCreation(self):
+        if(Size.LENGTH>self.FILE_MAX_SIZE):
+            return True
+        else:
+            return False   
 class BlockDivider:
     length=0
     listOfBlocks=[0]#yet to be implemented
@@ -30,7 +41,7 @@ class BlockDivider:
         self.bc=BlockCreator(Id)
         try:
             self.fd = open(filename,'r')
-            self.length=getSize(filename)
+            self.length=Size().getSize(filename)
                 
         except IOError:
             LOG.error("Error file not found: [%s]" %(filename))
@@ -47,10 +58,10 @@ class BlockDivider:
     
     def getFileContent(self):
        
-       if(self.length>FILE_MAX_LENGTH):
+       if(self.length>Size.BLOCK_MAX_SIZE):
        
             print self.length
-            self.data=self.fd.read(FILE_MAX_LENGTH)
+            self.data=self.fd.read(Size.BLOCK_MAX_SIZE)
             be=self.bc.createBlock(self.data)
        else:
        
@@ -58,7 +69,7 @@ class BlockDivider:
            print self.length
            print "End"
            be=self.bc.createEndOfFile(self.data)
-       self.length=self.length-FILE_MAX_LENGTH
+       self.length=self.length-Size.BLOCK_MAX_SIZE
        return be     
 
 if __name__ == "__main__":
