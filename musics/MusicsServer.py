@@ -66,7 +66,7 @@ class Echo(protocol.Protocol):
                         """1.this module is to check for the filesize. 
                         if the filesize is greater than 1024bytes,then send reInit to client.
                         increase the instance count in NOC dict"""
-                    if((Size().getSize(self.filename)>Size.FILE_MAX_SIZE) and (Size().decisionOnInstanceCreation()):                    
+                    if((Size().getSize(self.filename)>Size.FILE_MAX_SIZE) and (Size().decisionOnInstanceCreation())):                    
                         Echo.NOC[self.id]+=1
                         LOG.debug("Filesize is checked and instance is created") 
                         self.transport.write(BlockCreator(self.id).createReinit())                                                
