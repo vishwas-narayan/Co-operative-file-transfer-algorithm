@@ -6,11 +6,11 @@ import logging as LOG
 import LoggingConfig
 from BlockCreater import DS, BlockCreator
 class EchoClient(protocol.Protocol):
-    def __init__(self,echoFactory,Ide=None):
+    def __init__(self,echoFactory,Ide=None,filename=None):
         """5.To make the created client's id same"""
         self.ef=echoFactory
         self.id=Ide
-
+        self.variable=filename
     def connectionMade(self):
         """6.This module is for checking whether this is first connection of the client.
         If it is not then the created instance sends message to the server about its creation"""
@@ -19,7 +19,7 @@ class EchoClient(protocol.Protocol):
             self.transport.write(BlockCreator().createInit())
         else:
             LOG.debug("Created Instance makes the server check for another instance to be created")
-            self.transport.write(BlockCreator(self.id).createBlockForClient())
+            self.transport.write(BlockCreator(self.id).forOperation(("GET " +str(self.variable))))
         
     def dataReceived(self,data):
         LOG.debug("In client : %s" %str(type(data)))
@@ -33,7 +33,7 @@ class EchoClient(protocol.Protocol):
             """3.This module checks whether the server requests for creating another instance.
             And sends the message[in the form of id] to the EchoFactory which actually creates the instance"""
             LOG.debug("Reinit message recieved from server ")
-            self.ef.getMessageFromClient(self.id)
+            self.ef.getMessageFromClient(self.id,self.variable)
             
         if(d[DS.CONTENT_TYPE]==DS.DATA):
             f=open("newfile.txt",'a')     
@@ -57,14 +57,16 @@ class EchoClient(protocol.Protocol):
 class EchoFactory(protocol.ClientFactory):
     def __init__(self):
         self.ide=None
+        self.filename=None
     def buildProtocol(self, addr):
-        return EchoClient(self,self.ide)
+        return EchoClient(self,self.ide,self.filename)
         
     def getMessageFromClient(self,Id):
         """4.This method iniates the connection with the server but with the id.
         So that EchoFactory uses the id for creating the client"""
         LOG.debug("Message to the EchoFactory from client %d" ,Id)
         self.ide=Id
+        self.filename=filename
         reactor.connectTCP("localhost",8000,self)    
 
     def clientConnectionFailed(self, connector, reason):
