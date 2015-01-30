@@ -61,7 +61,7 @@ class EchoFactory(protocol.ClientFactory):
     def buildProtocol(self, addr):
         return EchoClient(self,self.ide,self.filename)
         
-    def getMessageFromClient(self,Id):
+    def getMessageFromClient(self,Id,filename):
         """4.This method iniates the connection with the server but with the id.
         So that EchoFactory uses the id for creating the client"""
         LOG.debug("Message to the EchoFactory from client %d" ,Id)
