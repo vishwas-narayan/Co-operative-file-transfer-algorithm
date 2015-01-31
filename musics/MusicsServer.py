@@ -102,6 +102,8 @@ class EchoFactory(protocol.Factory):
     def buildProtocol(self, addr):
         self.sid+=1
         return Echo(self.sid)
+    def Sync(self,ide):
+        pass
 echoFactory=EchoFactory()
 if __name__=="__main__":
     signal(SIGINT,Echo.sigintHandler)

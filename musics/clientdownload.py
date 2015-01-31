@@ -3,6 +3,7 @@ import tempfile
 from twisted.internet import reactor, protocol
 #import requests
 import logging as LOG
+from ipadress import ip
 import LoggingConfig
 from BlockCreater import DS, BlockCreator
 class EchoClient(protocol.Protocol):
@@ -33,6 +34,7 @@ class EchoClient(protocol.Protocol):
             """3.This module checks whether the server requests for creating another instance.
             And sends the message[in the form of id] to the EchoFactory which actually creates the instance"""
             LOG.debug("Reinit message recieved from server ")
+            self.transport.write(BlockCreator(self.id).forOperation(("GET " +str(self.variable))))
             self.ef.getMessageFromClient(self.id,self.variable)
             
         if(d[DS.CONTENT_TYPE]==DS.DATA):
@@ -67,7 +69,8 @@ class EchoFactory(protocol.ClientFactory):
         LOG.debug("Message to the EchoFactory from client %d" ,Id)
         self.ide=Id
         self.filename=filename
-        reactor.connectTCP("localhost",8000,self)    
+        reactor.connectTCP("localhost",8000,self)
+        LOG.debug("2nd connection is made")        
 
     def clientConnectionFailed(self, connector, reason):
         print "Connection failed......"
@@ -76,5 +79,6 @@ class EchoFactory(protocol.ClientFactory):
         print "Connection lost......"
         reactor.stop()
 echoFactory=EchoFactory()
+LOG.debug("1st connection is made")
 reactor.connectTCP("localhost",8000,echoFactory)
 reactor.run()   
