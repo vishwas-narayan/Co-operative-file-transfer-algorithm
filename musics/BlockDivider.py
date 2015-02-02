@@ -56,20 +56,19 @@ class BlockDivider:
       else:
             return False   
     
-    def getFileContent(self):
+    def getFileContent(self,blockRange):
        
        if(self.length>Size.BLOCK_MAX_SIZE):
-       
-            print self.length
-            self.data=self.fd.read(Size.BLOCK_MAX_SIZE)
-            be=self.bc.createBlock(self.data)
+           self.length=Size().getSize(self.filename)
+           self.fd.seek(blockRange-Size.BLOCK_MAX_SIZE,0)
+           self.data=self.fd.read(Size.BLOCK_MAX_SIZE) 
+           be=self.bc.createBlock(self.data)
        else:
-       
            self.data=self.fd.read()
            print self.length
            print "End"
            be=self.bc.createEndOfFile(self.data)
-       self.length=self.length-Size.BLOCK_MAX_SIZE
+       self.length=self.length-blockRange
        return be     
 
 if __name__ == "__main__":

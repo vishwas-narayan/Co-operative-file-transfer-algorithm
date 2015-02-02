@@ -72,8 +72,9 @@ class Echo(protocol.Protocol):
                         self.transport.write(BlockCreator(self.id).createReinit())                                                
                     else:
                         if(d[DS.ACK]==DS.ACK or getSize(self.filename)<Size.FILE_MAX_SIZE ):
-                            if(self.bd.hasMoreData()):
-                                data=self.bd.getFileContent()
+                            self.BlockIdentifier=self.echoObject.Sync(d[DS.ID])
+                            if(self.bd.hasMoreData(self.BlockIdentifier)):
+                                data=self.bd.getFileContent(self.BlockIdentifier)
                                 LOG.debug("Server sending data : %s" %(str(data)))
                                 print data                                
                                 self.transport.write(json.dumps(data))
@@ -103,7 +104,15 @@ class EchoFactory(protocol.Factory):
         self.sid+=1
         return Echo(self.sid)
     def Sync(self,ide):
-        pass
+        if(self.f=={}):
+            self.f[ide]=Size.BLOCK_MAX_SIZE
+        elif(self.f.has_key(ide)):
+            self.f[ide]=self.f[ide]+Size.BLOCK_MAX_SIZE
+        else:
+            self.f[ide]=Size.BLOCK_MAX_SIZE
+        LOG.debug("sync %s",str(self.f))
+        return self.f[ide]
+
 echoFactory=EchoFactory()
 if __name__=="__main__":
     signal(SIGINT,Echo.sigintHandler)
