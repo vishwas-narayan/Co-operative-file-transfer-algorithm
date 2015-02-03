@@ -32,8 +32,9 @@ class Echo(protocol.Protocol):
     connections=0
     NOC={}   #No of connections
     identifier={}   #For storing the server id wrt client id   
-    def __init__(self,sid):
+    def __init__(self,echoObect,sid):
         self.sid=sid
+        self.echoObject=echoObject
         self.filename=None
         LOG.debug("Server id created")
         
@@ -73,7 +74,7 @@ class Echo(protocol.Protocol):
                     else:
                         if(d[DS.ACK]==DS.ACK or getSize(self.filename)<Size.FILE_MAX_SIZE ):
                             self.BlockIdentifier=self.echoObject.Sync(d[DS.ID])
-                            if(self.bd.hasMoreData(self.BlockIdentifier)):
+                            if(self.bd.hasMoreData()):
                                 data=self.bd.getFileContent(self.BlockIdentifier)
                                 LOG.debug("Server sending data : %s" %(str(data)))
                                 print data                                
@@ -85,7 +86,12 @@ class Echo(protocol.Protocol):
                 except FileNotFoundException:
                     LOG.info ("File not found")
                     responseContent="FileNotFound : %s" %(self.filename)
-                    self.transport.write(responseContent)    
+                    self.transport.write(responseContent) 
+                except NullError:
+                    LOG.debug("file EOF reached")
+                    responseContent="File last block sent: %s" %(self.filename)
+                    self.transport.write(responseContent)                    
+   
 
     def connectionLost(self,reason):
         Echo.connections-=1
@@ -100,9 +106,10 @@ class Echo(protocol.Protocol):
 
 class EchoFactory(protocol.Factory):
     sid=0
+    f={}
     def buildProtocol(self, addr):
         self.sid+=1
-        return Echo(self.sid)
+        return Echo(self,self.sid)
     def Sync(self,ide):
         if(self.f=={}):
             self.f[ide]=Size.BLOCK_MAX_SIZE

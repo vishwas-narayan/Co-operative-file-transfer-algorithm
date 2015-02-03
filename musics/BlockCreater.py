@@ -17,8 +17,8 @@ class DS:
     REINIT="REINIT"
 import json
 class BlockCreator():
+    blockNum={}
     def __init__(self,myid=None):
-        self.blockNum=1
         self.myid=myid 
         
     def createReinit(self):
@@ -31,12 +31,17 @@ class BlockCreator():
     def createBlock(self,data):
         d={}
         d[DS.ID]=self.myid
-        d[DS.BLOCK]=self.blockNum
         d[DS.BLOCKSIZE]=len(data)
         d[DS.CONTENT]=data
         d[DS.CONTENT_TYPE]=DS.DATA
         d[DS.ACK]=DS.ACK
-        self.blockNum+=1  
+        if(BlockCreator.blockNum.has_key(self.myid)):
+            BlockCreator.blockNum[self.myid]+=1
+            LOG.debug("block number incremented %s",str(BlockCreator.blockNum))
+        else:
+            BlockCreator.blockNum[self.myid]=1  
+            LOG.debug("block number initialized %s",str(BlockCreator.blockNum))
+        d[DS.BLOCK]=BlockCreator.blockNum[self.myid]  
         return d
     
     def forOperation(self,data):

@@ -16,6 +16,8 @@ import logging as LOG
 import random
 class FileNotFoundException(Exception):
     pass
+class NullError(Exception):
+    pass
 class Size():  
     BLOCK_MAX_SIZE=1024
     FILE_MAX_SIZE=1024
@@ -68,6 +70,8 @@ class BlockDivider:
            print self.length
            print "End"
            be=self.bc.createEndOfFile(self.data)
+           if(self.length-blockRange<0):
+               raise NullError()
        self.length=self.length-blockRange
        return be     
 
