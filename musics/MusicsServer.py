@@ -19,7 +19,7 @@ from signal import SIGINT, signal
 from sys import exit
 import logging as LOG
 import LoggingConfig
-from BlockDivider import BlockDivider, FileNotFoundException,BlockCreator,DS,Size
+from BlockDivider import BlockDivider, FileNotFoundException,BlockCreator,DS,Size,NullError
 from Validation import Validation, ValidationException
 import os
 import json
@@ -32,7 +32,7 @@ class Echo(protocol.Protocol):
     connections=0
     NOC={}   #No of connections
     identifier={}   #For storing the server id wrt client id   
-    def __init__(self,echoObect,sid):
+    def __init__(self,echoObject,sid):
         self.sid=sid
         self.echoObject=echoObject
         self.filename=None

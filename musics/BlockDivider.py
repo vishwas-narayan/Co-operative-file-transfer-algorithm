@@ -41,6 +41,7 @@ class BlockDivider:
     listOfBlocks=[0]#yet to be implemented
     def __init__(self,filename,Id):
         self.bc=BlockCreator(Id)
+        self.filename=filename
         try:
             self.fd = open(filename,'r')
             self.length=Size().getSize(filename)
@@ -59,21 +60,15 @@ class BlockDivider:
             return False   
     
     def getFileContent(self,blockRange):
-       
-       if(self.length>Size.BLOCK_MAX_SIZE):
-           self.length=Size().getSize(self.filename)
-           self.fd.seek(blockRange-Size.BLOCK_MAX_SIZE,0)
-           self.data=self.fd.read(Size.BLOCK_MAX_SIZE) 
+       self.fd.seek(blockRange-Size.BLOCK_MAX_SIZE,0)
+       self.data=self.fd.read(Size.BLOCK_MAX_SIZE)       
+       if(self.length>blockRange):           
            be=self.bc.createBlock(self.data)
        else:
-           self.data=self.fd.read()
            print self.length
            print "End"
            be=self.bc.createEndOfFile(self.data)
-           if(self.length-blockRange<0):
-               raise NullError()
-       self.length=self.length-blockRange
-       return be     
+       return be         
 
 if __name__ == "__main__":
     filename=raw_input("Enter filename: ")
