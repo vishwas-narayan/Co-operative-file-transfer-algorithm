@@ -11,21 +11,19 @@ class DS:
     INIT="INIT"
     ID="ID"
     EOF="EOF"
-    ACK="ACK"  
-    CHECK="CHECK"  
-    NOCHECK="NOCHECK"    
+    ACK="ACK"     
     REINIT="REINIT"
+    GET="GET"
 import json
 class BlockCreator():
     blockNum={}
     def __init__(self,myid=None):
         self.myid=myid 
         
-    def createReinit(self):
+    def createReinit(self,f):
         """2.This module is used to create 'REINIT' datastructure"""   
-        d={}
-        d[DS.CONTENT_TYPE]=DS.REINIT
-        d[DS.ID]=self.myid
+        d=f
+        d[DS.OPERATION]=DS.REINIT
         return json.dumps(d) 
              
     def createBlock(self,data):
@@ -34,7 +32,7 @@ class BlockCreator():
         d[DS.BLOCKSIZE]=len(data)
         d[DS.CONTENT]=data
         d[DS.CONTENT_TYPE]=DS.DATA
-        d[DS.ACK]=DS.ACK
+        d[DS.OPERATION]=DS.GET
         if(BlockCreator.blockNum.has_key(self.myid)):
             BlockCreator.blockNum[self.myid]+=1
             LOG.debug("block number incremented %s",str(BlockCreator.blockNum))
@@ -46,30 +44,36 @@ class BlockCreator():
     
     def forOperation(self,data):
         d={}
-        d[DS.CONTENT_TYPE]=DS.OPERATION
-        d[DS.CONTENT]=data
         d[DS.ID]=self.myid
-        d[DS.ACK]=DS.ACK
-        d[DS.CHECK]=DS.CHECK
+        d[DS.CONTENT_TYPE]=DS.OPERATION
+        d[DS.OPERATION]=DS.GET
+        d[DS.CONTENT]=data  
         return json.dumps(d)
     
     def createEndOfFile(self,data):
         d=self.createBlock(data)
         d[DS.CONTENT_TYPE]=DS.EOF
         return d
+        
     def createInit(self):
         d={}
-        d[DS.CONTENT_TYPE]=DS.INIT
         d[DS.ID]=self.myid
+        d[DS.OPERATION]=DS.INIT
+        if(self.myid==None):           
+            d[DS.CONTENT_TYPE]=DS.OPERATION           
+        else:
+            d[DS.CONTENT_TYPE]=DS.ACK
         return json.dumps(d)
-    def createBlockForClient(self):
-        LOG.debug("Inside client for acknowledgement ")
+        
+    def createBlockForClient(self,Operation,filename):
         d={}
-        d[DS.CONTENT_TYPE]=DS.OPERATION
-        d[DS.ACK]=DS.ACK
         d[DS.ID]=self.myid
-        d[DS.CHECK]=DS.NOCHECK
+        d[DS.CONTENT_TYPE]=DS.ACK
+        d[DS.CONTENT]=filename
+        d[DS.OPERATION]=Operation
+        LOG.debug("Inside client for acknowledgement ")
         return json.dumps(d)
+
 if __name__ == "__main__":
     filename=raw_input("ENTER FILE NAME: ")
     fp=open(filename,'r')
@@ -79,6 +83,6 @@ if __name__ == "__main__":
         d=bc.createBlock()
         print d        
     except FileNotFoundException:
-        print ("File %s does not exist" %(filename))
+        print ("File %s dones not exist" %(filename))
       
 
