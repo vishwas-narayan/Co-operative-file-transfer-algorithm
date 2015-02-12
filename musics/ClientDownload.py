@@ -35,19 +35,20 @@ class EchoClient(protocol.Protocol):
                 self.recieveBlock()
             elif(self.d[DS.OPERATION]==DS.GET):
                 self.recieveBlock()
+        elif(self.d[DS.CONTENT_TYPE]==DS.EOF and self.d[DS.OPERATION]==DS.GET):
+             self.recieveBlock()
    
     def recieveBlock(self):
         f=open("newfile.txt",'a')     
         if(self.d[DS.CONTENT_TYPE]==DS.DATA):
             try: 
-                LOG.debug("inside client download: %s",self.d[DS.CONTENT])
                 f.write(self.d[DS.CONTENT])
                 self.transport.write(BlockCreator(self.id).createBlockForClient(DS.GET,self.filename))        
             except:
                 LOG.debug( "Error in converting from json")
                 self.transport.loseConnection()
         elif(self.d[DS.CONTENT_TYPE]==DS.EOF):                          
-            f=open("newfile.txt",'a')
+            f=open("newfile.txt",'a')#has to be the filename
             try:
                 f.write(self.d[DS.CONTENT])
                 f.close()
@@ -57,6 +58,7 @@ class EchoClient(protocol.Protocol):
             self.transport.loseConnection() 
            
 class EchoFactory(protocol.ClientFactory):
+    noc=1
     def __init__(self):
         self.ide=None
         self.filename=None
@@ -69,8 +71,9 @@ class EchoFactory(protocol.ClientFactory):
         LOG.debug("Message to the EchoFactory from client %d" ,Id)
         self.ide=Id
         self.filename=filename
+        self.noc+=1
         reactor.connectTCP("localhost",8000,self)
-        LOG.debug("2nd connection is made")    
+        LOG.debug("connection %d is made",self.noc)    
 
     def clientConnectionFailed(self, connector, reason):
         print "Connection failed......"

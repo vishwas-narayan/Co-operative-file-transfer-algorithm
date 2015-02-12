@@ -22,8 +22,9 @@ class Size():
     BLOCK_MAX_SIZE=1024
     FILE_MAX_SIZE=1024
     LENGTH=0
-    def checkSize(self,filename):
-        self.fl=0 
+    i=0
+    fl=0
+    def checkSize(self,filename):        
         st = os.stat(filename)
         if(self.fl==0):
             st = os.stat(filename)
@@ -39,7 +40,8 @@ class Size():
         return st.st_size 
    
     def decisionOnInstanceCreation(self):
-        if(self.fl>self.FILE_MAX_SIZE):
+        self.i+=1
+        if((self.fl>self.FILE_MAX_SIZE and self.i<2):#not working since all instances create their own object for Size.
             return True
         else:
             return False   
@@ -58,7 +60,6 @@ class BlockDivider:
     def hasMoreData(self): 
      
       if self.length>0:
-            print self.length
             return True
       else:
             return False   

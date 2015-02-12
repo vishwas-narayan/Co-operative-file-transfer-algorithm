@@ -1,136 +1,92 @@
-
-"""Requires Twisted matrix to run. To install do:  
-        sudo apt-get install python-twisted
-   ~~~~~~~~~~
-   Twisted is a framework that allows concurrent servers to be built 
-   using Asynchronous connections. We'll look into these later. 
-
-
-   To see how it works run the program as:  python EchoServer.py
-   Then open another terminal and use telnet program to connect: 
-   telnet localhost 8000
-
-   Type whatever you want then press Enter. 
-   To close the telnet connection press CTRL+] and then CTRL+D
-"""
-
-from twisted.internet import protocol, reactor
-from signal import SIGINT, signal
-from sys import exit
-import logging as LOG
-import LoggingConfig
-from BlockDivider import BlockDivider, FileNotFoundException,BlockCreator,DS,Size,NullError
-from Validation import Validation, ValidationException
-import os
 import json
-import time
-def ranGenerator():
-    import random
-    x=random.randint(1,100)
-    return x 
-class Echo(protocol.Protocol):
-    connections=0
-    NOC={}
-    def __init__(self,echoObject,sid):
-        self.sid=sid
-        self.echoObject=echoObject
-        self.filename=None
-        self.size=Size()
-        LOG.debug("Server id created")
-
+import tempfile
+from twisted.internet import reactor, protocol
+import logging as LOG
+from ipadress import ip
+import LoggingConfig
+from BlockCreater import DS, BlockCreator
+class EchoClient(protocol.Protocol):
+    def __init__(self,echoFactory,Ide=None,filename=None):
+        """5.To make the created client's id same"""
+        self.ef=echoFactory
+        self.id=Ide
+        self.filename=filename
     def connectionMade(self):
-        Echo.connections+=1               
-        LOG.debug("Total connections: %d",Echo.connections)
-
-    def dataReceived(self, data):
-        self.d={}
-        LOG.info("Received data from client: %s" ,data)
+        """6.This module is for checking whether this is first connection of the client.
+        If it is not then the created instance sends message to the server about its creation"""
+        if(self.id==None):
+            self.filename=raw_input("enter filename: ")
+            self.transport.write(BlockCreator().createInit())
+        else:
+            LOG.debug("Created Instance makes the server check for another instance to be created")
+            self.transport.write(BlockCreator(self.id).createBlockForClient(DS.REINIT,self.filename))
+    def dataReceived(self,data):
+        LOG.debug("In client : %s" %str(data))
         self.d=json.loads(data)
-        LOG.debug( type(self.d))
-        
-        if(self.d[DS.CONTENT_TYPE]==DS.OPERATION):
-            if(self.d[DS.OPERATION]==DS.INIT):
-                self.id=ranGenerator()          
-                while(Echo.NOC.has_key(self.id)):
-                    self.id=ranGenerator() 
-                Echo.NOC[self.id]=1
-                self.transport.write(BlockCreator(self.id).createInit())
-            if(self.d[DS.OPERATION]==DS.GET):
-                try:
-                    v=Validation()    
-                    LOG.info ("Current working directory %s" %(os.getcwd()))
-                    self.filename=v.validate(self.d[DS.CONTENT])[1]
-                    LOG.info ("filename validated %s " %(self.filename))
-                    self.bd=BlockDivider(self.filename,self.d[DS.ID])
-                    LOG.info ("File exists")
-                    """1.this module is to check for the filesize. 
-                    if the filesize is greater than 1024bytes,then send reInit to client.
-                    increase the instance count in NOC dict"""
-                except ValidationException:
-                    responseContent="Invalid query: %s" %(data)
-                    self.transport.write(responseContent)
-                except FileNotFoundException:
-                    LOG.info ("File not found")
-                    responseContent="FileNotFound : %s" %(self.filename)
-                    self.transport.write(responseContent)
+        if(self.d[DS.CONTENT_TYPE]==DS.ACK and self.d[DS.OPERATION]==DS.INIT):
+            self.id=self.d[DS.ID]
+            self.transport.write(BlockCreator(self.id).forOperation(("GET " +str(self.filename))))
+        if(self.d[DS.CONTENT_TYPE]==DS.DATA):  
+            if(self.d[DS.OPERATION]==DS.REINIT):
+                """3.This module checks whether the server requests for creating another instance.
+                And sends the message[in the form of id] to the EchoFactory which actually creates the instance"""
+                LOG.debug("Reinit message recieved from server ")
+                self.ef.getMessageFromClient(self.id,self.filename)
+                self.recieveBlock()
+            elif(self.d[DS.OPERATION]==DS.GET):
+                self.recieveBlock()
+        elif(self.d[DS.CONTENT_TYPE]==DS.EOF and self.d[DS.OPERATION]==DS.GET):
+             self.recieveBlock()
+   
+    def recieveBlock(self):
+        f=open("newfile.txt",'a')     
+        if(self.d[DS.CONTENT_TYPE]==DS.DATA):
+            try: 
+                f.write(self.d[DS.CONTENT])
+                self.transport.write(BlockCreator(self.id).createBlockForClient(DS.GET,self.filename))        
+            except:
+                LOG.debug( "Error in converting from json")
+                self.transport.loseConnection()
+        elif(self.d[DS.CONTENT_TYPE]==DS.EOF):                          
+            f=open("newfile.txt",'a')#has to be the filename
+            try:
+                f.write(self.d[DS.CONTENT])
+                f.close()
+            except:
+                LOG.debug("")
+            LOG.debug("client loses connection because EOF is reached" )
+            self.transport.loseConnection() 
            
-        if((self.d[DS.CONTENT_TYPE]==DS.ACK and self.d[DS.OPERATION]==DS.GET)or self.d[DS.OPERATION]==DS.GET):
-            if((self.size.checkSize(self.filename)>Size.FILE_MAX_SIZE) and (self.size.decisionOnInstanceCreation())):                    
-                Echo.NOC[self.id]+=1
-                LOG.debug("Filesize is checked and instance is created")
-                self.BlockIdentifier=self.echoObject.Sync(self.d[DS.ID])
-                self.data=self.bd.getFileContent(self.BlockIdentifier) 
-                self.transport.write(BlockCreator(self.id).createReinit(self.data))
-            else:
-                self.sendBlock(self.filename) 
-        elif(self.d[DS.CONTENT_TYPE]==DS.ACK and self.d[DS.OPERATION]==DS.REINIT):
-                self.sendBlock(self.d[DS.CONTENT])                                   
-    
-    def sendBlock(self,filename):
-        try:
-            self.BlockIdentifier=self.echoObject.Sync(self.d[DS.ID])
-            self.bd=BlockDivider(filename,self.d[DS.ID])
-            if(self.bd.hasMoreData()):
-                self.data=self.bd.getFileContent(self.BlockIdentifier)
-                LOG.debug("Server %d sending data : %s" ,self.sid,(str(self.data)))                               
-                self.transport.write(json.dumps(self.data))
-                LOG.info ("File contents sent")
-        except NullError:
-            LOG.debug("file EOF reached")
-            responseContent="File last block sent: %s" %(filename)
-            self.transport.write(responseContent)                    
-            
-
-    def connectionLost(self,reason):
-        Echo.connections-=1  
-        LOG.debug ("ConnectionLost, Total connections: %d " , Echo.connections)
-        
-    @staticmethod
-    def sigintHandler(num,trace):
-        LOG.info("Quitting the program")
-        LOG.info("total connections %d" %(Echo.connections))
-        reactor.stop()
-
-class EchoFactory(protocol.Factory):
-    sid=0
-    f={}
-    
+class EchoFactory(protocol.ClientFactory):
+    noc=1
+    def __init__(self):
+        self.ide=None
+        self.filename=None
     def buildProtocol(self, addr):
-        self.sid+=1
-        return Echo(self,self.sid)
-    def Sync(self,ide):
-            if(self.f=={}):
-                self.f[ide]=Size.BLOCK_MAX_SIZE
-            elif(self.f.has_key(ide)):
-                self.f[ide]=self.f[ide]+Size.BLOCK_MAX_SIZE
-            else:
-                self.f[ide]=Size.BLOCK_MAX_SIZE
-            LOG.debug("sync %s",str(self.f))
-            return self.f[ide]
-            
+        return EchoClient(self,self.ide,self.filename)
         
+    def getMessageFromClient(self,Id,filename):
+        """4.This method iniates the connection with the server but with the id.
+        So that EchoFactory uses the id for creating the client"""
+        LOG.debug("Message to the EchoFactory from client %d" ,Id)
+        self.ide=Id
+        self.filename=filename
+        self.noc+=1
+        reactor.connectTCP("localhost",8000,self)
+        LOG.debug("connection %d is made",self.noc)    
+
+    def clientConnectionFailed(self, connector, reason):
+        print "Connection failed......"
+        reactor.stop()
+    def clientConnectionLost(self, connector, reason):
+        print "Connection lost......"
+        reactor.stop()
 echoFactory=EchoFactory()
-if __name__=="__main__":
-    signal(SIGINT,Echo.sigintHandler)
-    reactor.listenTCP(8000, echoFactory)
-    reactor.run()
+LOG.debug("1st connection is made")
+reactor.connectTCP("localhost",8000,echoFactory)
+reactor.run()   
+        
+
+
+
+
