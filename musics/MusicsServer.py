@@ -39,6 +39,7 @@ class Echo(protocol.Protocol):
         self.sid=sid
         self.echoObject=echoObject
         self.filename=None
+        self.size=Size()
         LOG.debug("Server id created")
 
     def connectionMade(self):
@@ -83,13 +84,13 @@ class Echo(protocol.Protocol):
                     self.transport.write(responseContent)
            
         if((self.d[DS.CONTENT_TYPE]==DS.ACK and self.d[DS.OPERATION]==DS.GET) or self.d[DS.OPERATION]==DS.GET):
-            
-            if((Size().getSize(self.filename)>Size.FILE_MAX_SIZE) and (Size().decisionOnInstanceCreation())):                    
+            if((self.size.checkSize(self.filename)>Size.FILE_MAX_SIZE) and self.size.decisionOnInstanceCreation(Echo.NOC,self.d[DS.ID])): 
+                                                                                                    
                 Echo.NOC[self.id]+=1
                 LOG.debug("Filesize is checked and instance is created")
                 self.BlockIdentifier=self.echoObject.Sync(self.d[DS.ID])
                 data=self.bd.getFileContent(self.BlockIdentifier) 
-                self.transport.write(BlockCreator(self.id).createReinit(data[DS.CONTENT]))
+                self.transport.write(BlockCreator(self.id).createReinit(data))
             
             else:
                 self.sendBlock(self.filename) 
@@ -104,7 +105,7 @@ class Echo(protocol.Protocol):
         
             d={}
             self.BlockIdentifier=self.echoObject.Sync(self.d[DS.ID])
-           
+            self.bd=BlockDivider(self.filename,self.d[DS.ID])
             if(self.bd.hasMoreData()):
                 data=self.bd.getFileContent(self.BlockIdentifier)
                 LOG.debug("Server %d sending data : %s" ,self.sid,(str(data)))                               

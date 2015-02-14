@@ -39,9 +39,8 @@ class Size():
         st = os.stat(filename)
         return st.st_size 
    
-    def decisionOnInstanceCreation(self):
-        self.i+=1
-        if((self.fl>self.FILE_MAX_SIZE and self.i<2):#not working since all instances create their own object for Size.
+    def decisionOnInstanceCreation(self,noc,ide):
+        if(self.fl>self.FILE_MAX_SIZE and noc[ide]<3):#not working since all instances create their own object for Size.
             return True
         else:
             return False   

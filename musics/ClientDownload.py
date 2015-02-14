@@ -32,13 +32,12 @@ class EchoClient(protocol.Protocol):
                 And sends the message[in the form of id] to the EchoFactory which actually creates the instance"""
                 LOG.debug("Reinit message recieved from server ")
                 self.ef.getMessageFromClient(self.id,self.filename)
-                self.recieveBlock()
-            elif(self.d[DS.OPERATION]==DS.GET):
-                self.recieveBlock()
+            self.recieveBlock(self.d)
         elif(self.d[DS.CONTENT_TYPE]==DS.EOF and self.d[DS.OPERATION]==DS.GET):
-             self.recieveBlock()
+             self.recieveBlock(self.d)
    
-    def recieveBlock(self):
+    def recieveBlock(self,data):
+        self.d=data
         f=open("newfile.txt",'a')     
         if(self.d[DS.CONTENT_TYPE]==DS.DATA):
             try: 
