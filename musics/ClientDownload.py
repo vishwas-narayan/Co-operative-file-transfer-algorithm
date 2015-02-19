@@ -21,21 +21,25 @@ class EchoClient(protocol.Protocol):
             LOG.debug("Created Instance makes the server check for another instance to be created")
             self.transport.write(BlockCreator(self.id).createBlockForClient(DS.REINIT,self.filename))
     def dataReceived(self,data):
-        LOG.debug("In client : %s" %str(data))
-        self.d=json.loads(data)
-        if(self.d[DS.CONTENT_TYPE]==DS.ACK and self.d[DS.OPERATION]==DS.INIT):
-            self.id=self.d[DS.ID]
-            self.transport.write(BlockCreator(self.id).forOperation(("GET " +str(self.filename))))
-        if(self.d[DS.CONTENT_TYPE]==DS.DATA):  
-            if(self.d[DS.OPERATION]==DS.REINIT):
-                """3.This module checks whether the server requests for creating another instance.
-                And sends the message[in the form of id] to the EchoFactory which actually creates the instance"""
-                LOG.debug("Reinit message recieved from server ")
-                self.ef.getMessageFromClient(self.id,self.filename)
-            self.recieveBlock(self.d)
-        elif(self.d[DS.CONTENT_TYPE]==DS.EOF and self.d[DS.OPERATION]==DS.GET):
-             self.recieveBlock(self.d)
-   
+        try:
+            LOG.debug("In client : %s" %str(data))
+            self.d=json.loads(data)
+            if(self.d[DS.CONTENT_TYPE]==DS.ACK and self.d[DS.OPERATION]==DS.INIT):
+                self.id=self.d[DS.ID]
+                self.transport.write(BlockCreator(self.id).forOperation(("GET " +str(self.filename))))
+            if(self.d[DS.CONTENT_TYPE]==DS.DATA):  
+                if(self.d[DS.OPERATION]==DS.REINIT):
+                    """3.This module checks whether the server requests for creating another instance.
+                    And sends the message[in the form of id] to the EchoFactory which actually creates the instance"""
+                    LOG.debug("Reinit message recieved from server ")
+                    self.ef.getMessageFromClient(self.id,self.filename)
+                self.recieveBlock(self.d)
+            elif(self.d[DS.CONTENT_TYPE]==DS.EOF and self.d[DS.OPERATION]==DS.GET):
+                self.recieveBlock(self.d)
+        except:
+            LOG.debug(" %s",str(data))
+            print str(data)
+            self.transport.loseConnection()
     def recieveBlock(self,data):
         self.d=data
         f=open("newfile.txt",'a')     
@@ -47,7 +51,6 @@ class EchoClient(protocol.Protocol):
                 LOG.debug( "Error in converting from json")
                 self.transport.loseConnection()
         elif(self.d[DS.CONTENT_TYPE]==DS.EOF):                          
-            f=open("newfile.txt",'a')#has to be the filename
             try:
                 f.write(self.d[DS.CONTENT])
                 f.close()

@@ -51,19 +51,19 @@ class Echo(protocol.Protocol):
         LOG.info("Received data from client: %s" ,data)
         self.d=json.loads(data)
         LOG.debug(type(self.d))
-        
-        if(self.d[DS.CONTENT_TYPE]==DS.OPERATION):
+        try:
+            if(self.d[DS.CONTENT_TYPE]==DS.OPERATION):
             
-            if(self.d[DS.OPERATION]==DS.INIT):
-                self.id=ranGenerator()          
-                while(Echo.NOC.has_key(self.id)):
-                    self.id=ranGenerator() 
-                Echo.NOC[self.id]=1
-                self.transport.write(BlockCreator(self.id).createInit())
+                if(self.d[DS.OPERATION]==DS.INIT):
+                    self.id=ranGenerator()          
+                    while(Echo.NOC.has_key(self.id)):
+                        self.id=ranGenerator() 
+                    Echo.NOC[self.id]=1
+                    self.transport.write(BlockCreator(self.id).createInit())
             
-            if(self.d[DS.OPERATION]==DS.GET):
+                if(self.d[DS.OPERATION]==DS.GET):
                 
-                try:
+                
                     v=Validation()    
                     LOG.info ("Current working directory %s" %(os.getcwd()))
                     self.filename=v.validate(self.d[DS.CONTENT])[1]
@@ -74,30 +74,32 @@ class Echo(protocol.Protocol):
                     if the filesize is greater than 1024bytes,then send reInit to client.
                     increase the instance count in NOC dict"""
                 
-                except ValidationException:
-                    responseContent="Invalid query: %s" %(data)
-                    self.transport.write(responseContent)
                 
-                except FileNotFoundException:
-                    LOG.info ("File not found")
-                    responseContent="FileNotFound : %s" %(self.filename)
-                    self.transport.write(responseContent)
            
-        if((self.d[DS.CONTENT_TYPE]==DS.ACK and self.d[DS.OPERATION]==DS.GET) or self.d[DS.OPERATION]==DS.GET):
-            if((self.size.checkSize(self.filename)>Size.FILE_MAX_SIZE) and self.size.decisionOnInstanceCreation(Echo.NOC,self.d[DS.ID])): 
+            if((self.d[DS.CONTENT_TYPE]==DS.ACK and self.d[DS.OPERATION]==DS.GET) or self.d[DS.OPERATION]==DS.GET):
+                if((self.size.checkSize(self.filename)>Size.FILE_MAX_SIZE) and self.size.decisionOnInstanceCreation(Echo.NOC,self.d[DS.ID])): 
                                                                                                     
-                Echo.NOC[self.id]+=1
-                LOG.debug("Filesize is checked and instance is created")
-                self.BlockIdentifier=self.echoObject.Sync(self.d[DS.ID])
-                data=self.bd.getFileContent(self.BlockIdentifier) 
-                self.transport.write(BlockCreator(self.id).createReinit(data))
+                    Echo.NOC[self.id]+=1
+                    LOG.debug("Filesize is checked and instance is created")
+                    self.BlockIdentifier=self.echoObject.Sync(self.d[DS.ID])
+                    data=self.bd.getFileContent(self.BlockIdentifier) 
+                    LOG.debug("Server %d sending data : %s" ,self.sid,(str(data)))                               
+                    self.transport.write(BlockCreator(self.id).createReinit(data))
             
-            else:
-                self.sendBlock(self.filename) 
+                else:
+                    self.sendBlock(self.filename) 
         
-        elif(self.d[DS.CONTENT_TYPE]==DS.ACK and self.d[DS.OPERATION]==DS.REINIT):
-            self.filename=self.d[DS.CONTENT]
-            self.sendBlock(self.d[DS.CONTENT])                                   
+            elif(self.d[DS.CONTENT_TYPE]==DS.ACK and self.d[DS.OPERATION]==DS.REINIT):
+                self.filename=self.d[DS.CONTENT]
+                self.sendBlock(self.d[DS.CONTENT])
+        except ValidationException:
+            responseContent="Invalid query: %s" %(data)
+            self.transport.write(json.dumps(responseContent))
+                
+        except FileNotFoundException:
+            LOG.info ("File not found")
+            responseContent="FileNotFound : %s" %(self.filename)
+            self.transport.write(json.dumps(responseContent))                                   
     
     def sendBlock(self,filename):
         
@@ -115,6 +117,8 @@ class Echo(protocol.Protocol):
             LOG.debug("file EOF reached")
             responseContent="File last block sent: %s" %(self.filename)
             self.transport.write(responseContent)                    
+    
+    
             
 
     def connectionLost(self,reason):
