@@ -116,7 +116,7 @@ class Echo(protocol.Protocol):
         except NullError:
             LOG.debug("file EOF reached")
             responseContent="File last block sent: %s" %(self.filename)
-            self.transport.write(responseContent)                    
+            self.transport.write(json.dumps(responseContent))                    
     
     
             

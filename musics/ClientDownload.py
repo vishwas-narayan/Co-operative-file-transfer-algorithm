@@ -33,33 +33,38 @@ class EchoClient(protocol.Protocol):
             if(self.d[DS.CONTENT_TYPE]==DS.ACK and self.d[DS.OPERATION]==DS.INIT):
                 self.id=self.d[DS.ID]
                 self.transport.write(BlockCreator(self.id).forOperation(("GET " +str(self.filename))))
-            if(self.d[DS.CONTENT_TYPE]==DS.DATA):  
+            if(self.d[DS.CONTENT_TYPE]==DS.DATA): 
                 if(self.d[DS.OPERATION]==DS.REINIT):
                     """3.This module checks whether the server requests for creating another instance.
                     And sends the message[in the form of id] to the EchoFactory which actually creates the instance"""
                     LOG.debug("Reinit message recieved from server ")
                     self.ef.getMessageFromClient(self.id,self.filename)
+                LOG.debug("After reinit message is sent")    
                 self.recieveBlock(self.d)
             elif(self.d[DS.CONTENT_TYPE]==DS.EOF and self.d[DS.OPERATION]==DS.GET):
                 self.recieveBlock(self.d)
         except:
             LOG.debug(" %s",str(data))
-            print str(data)
+            LOG.debug("problem with the recieve block" )
             self.transport.loseConnection()
     def recieveBlock(self,data):
-        self.d=data
+        LOG.debug("inside recieve block")
+        flag=0
+        flag_dic={}
         f=open("newfile.txt",'a')
-        if(self.ef.clientSync(self.id,self.d)):     
-            if(self.d[DS.CONTENT_TYPE]==DS.DATA):
+        flag_dic=self.ef.clientSync(data)
+        if(flag_dic['flag']==1):
+            variable=flag_dic['block'] 
+            if(variable[DS.CONTENT_TYPE]==DS.DATA):    
                 try: 
-                    f.write(self.d[DS.CONTENT])
-                    self.transport.write(BlockCreator(self.id).createBlockForClient(DS.GET,self.filename))        
+                    f.write(variable[DS.CONTENT])
+                    self.transport.write(BlockCreator(variable[DS.ID]).createBlockForClient(DS.GET,self.filename))        
                 except:
                     LOG.debug( "Error in converting from json")
                     self.transport.loseConnection()
-            elif(self.d[DS.CONTENT_TYPE]==DS.EOF):                          
+            elif(variable[DS.CONTENT_TYPE]==DS.EOF):         
                 try:
-                    f.write(self.d[DS.CONTENT])
+                    f.write(variable[DS.CONTENT])
                     f.close()
                 except:
                     LOG.debug("")
@@ -86,24 +91,35 @@ class EchoFactory(protocol.ClientFactory):
         self.noc+=1
         reactor.connectTCP("localhost",8000,self)
         LOG.debug("connection %d is made",self.noc) 
-    def clientSync(self,cid,data):
-        flag=0
-        LOG.DEBUG("inside client sync")
+    def clientSync(self,data):
+        LOG.debug("inside client syn")
+        cid=data[DS.ID]
+        flag_dic={} 
+        flag_dic['flag']=0 #function variable
+        LOG.debug("value of cid:%d",cid)
         if(self.bNum.has_key(cid)):
             if(self.bNum[cid]==data[DS.BLOCK]):
+                LOG.debug("if the bNum[ide] doesnot exists and for all the rest of the blocks") 
                 self.bNum[cid]+=1
-                flag=1
-                return True
+                flag_dic['flag']=1
+                flag_dic['block']=data
+                return flag_dic               
         else:
             self.bNum[cid]=1
             if(data[DS.BLOCK]==self.bNum[cid]):
+                LOG.debug("for the first block")
                 self.bNum[cid]+=1
-                flag=1
-                return True  
-        if(flag==0):
-            print "Inside flag"
-            dict_store_data[cid]=data
-        return False
+                flag_dic['flag']=1
+                flag_dic['block']=data
+                return flag_dic  
+        if(flag_dic['flag']==0):
+            LOG.debug("blocks are randomnly received")
+            self.dict_store_data[cid,data[DS.BLOCK]]=data
+            if(self.dict_store_data.has_key((cid,self.bNum[cid]))):
+                self.bNum[cid]+=1
+                flag_dic['flag']=1
+                flag_dic['block']=self.dict_store_data[cid,self.bNum[cid]-1]            
+            return flag_dic
 
     def clientConnectionFailed(self, connector, reason):
         print "Connection failed......"

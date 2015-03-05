@@ -71,6 +71,8 @@ class BlockDivider:
        else:
            print self.length
            print "End"
+           if(self.data==''):
+               raise NullError
            be=self.bc.createEndOfFile(self.data)
        return be         
 
