@@ -89,7 +89,7 @@ class EchoFactory(protocol.ClientFactory):
         self.ide=Id
         self.filename=filename
         self.noc+=1
-        reactor.connectTCP("localhost",8000,self)
+        reactor.connectTCP(ip.f[2],8000,self)
         LOG.debug("connection %d is made",self.noc) 
     def clientSync(self,data):
         LOG.debug("inside client syn")
@@ -99,12 +99,14 @@ class EchoFactory(protocol.ClientFactory):
         LOG.debug("value of cid:%d",cid)
         if(self.bNum.has_key(cid)):
             if(self.bNum[cid]==data[DS.BLOCK]):
-                LOG.debug("if the bNum[ide] doesnot exists and for all the rest of the blocks") 
+                """Here the checking is done from second block"""  
                 self.bNum[cid]+=1
                 flag_dic['flag']=1
                 flag_dic['block']=data
                 return flag_dic               
         else:
+            """Here the checking is done for first block and the id is added to the bNum"""
+            LOG.debug("bNum has got the new id in the client sync")
             self.bNum[cid]=1
             if(data[DS.BLOCK]==self.bNum[cid]):
                 LOG.debug("for the first block")
@@ -113,9 +115,11 @@ class EchoFactory(protocol.ClientFactory):
                 flag_dic['block']=data
                 return flag_dic  
         if(flag_dic['flag']==0):
+            """Here if the block is not sent orderly then that block will be added to dictionary(buffer)"""
             LOG.debug("blocks are randomnly received")
             self.dict_store_data[cid,data[DS.BLOCK]]=data
             if(self.dict_store_data.has_key((cid,self.bNum[cid]))):
+                """if there is any required block in the dictionary that should be added to the file"""
                 self.bNum[cid]+=1
                 flag_dic['flag']=1
                 flag_dic['block']=self.dict_store_data[cid,self.bNum[cid]-1]            
@@ -130,7 +134,7 @@ class EchoFactory(protocol.ClientFactory):
             reactor.stop()
 echoFactory=EchoFactory()
 LOG.debug("1st connection is made")
-reactor.connectTCP("localhost",8000,echoFactory)
+reactor.connectTCP(ip.f[1],8000,echoFactory)
 reactor.run()   
         
 
