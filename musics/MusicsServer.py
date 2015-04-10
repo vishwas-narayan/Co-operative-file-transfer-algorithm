@@ -78,7 +78,6 @@ class Echo(protocol.Protocol):
            
             if((self.d[DS.CONTENT_TYPE]==DS.ACK and self.d[DS.OPERATION]==DS.GET) or self.d[DS.OPERATION]==DS.GET):
                 if((self.size.checkSize(self.filename)>Size.FILE_MAX_SIZE) and self.size.decisionOnInstanceCreation(Echo.NOC,self.d[DS.ID])): 
-                                                                                                    
                     Echo.NOC[self.id]+=1
                     LOG.debug("Filesize is checked and instance is created")
                     self.BlockIdentifier=self.echoObject.Sync(self.d[DS.ID])
@@ -101,7 +100,7 @@ class Echo(protocol.Protocol):
             responseContent="FileNotFound : %s" %(self.filename)
             self.transport.write(json.dumps(responseContent))                                   
     
-    def sendBlock(self,filename):
+    def sendBlock(self,filename):;
         
         try:
         
