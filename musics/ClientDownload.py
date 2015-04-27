@@ -19,7 +19,7 @@ class EchoClient(protocol.Protocol):
         self.filename=filename
     def connectionMade(self):
         """6.This module is for checking whether this is first connection of the client.
-        If it is not then the created instance sends message to the server about its creation"""
+        If it is not then the created instance sends message to the server about its creation;"""
         if(self.id==None):
             self.filename = args.start
             self.transport.write(BlockCreator().createInit())
@@ -89,7 +89,7 @@ class EchoFactory(protocol.ClientFactory):
         self.ide=Id
         self.filename=filename
         self.noc+=1
-        reactor.connectTCP(ip.f[2],8000,self)
+        reactor.connectTCP("localhost",8000,self)
         LOG.debug("connection %d is made",self.noc) 
     def clientSync(self,data):
         LOG.debug("inside client syn")
@@ -134,7 +134,7 @@ class EchoFactory(protocol.ClientFactory):
             reactor.stop()
 echoFactory=EchoFactory()
 LOG.debug("1st connection is made")
-reactor.connectTCP(ip.f[1],8000,echoFactory)
+reactor.connectTCP("localhost",8000,echoFactory)
 reactor.run()   
         
 

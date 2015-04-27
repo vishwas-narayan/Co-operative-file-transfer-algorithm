@@ -98,9 +98,9 @@ class Echo(protocol.Protocol):
         except FileNotFoundException:
             LOG.info ("File not found")
             responseContent="FileNotFound : %s" %(self.filename)
-            self.transport.write(json.dumps(responseContent))                                   
+            self.transport.write(json.dumps(responseContent));                                  
     
-    def sendBlock(self,filename):;
+    def sendBlock(self,filename):
         
         try:
         
@@ -139,7 +139,7 @@ class EchoFactory(protocol.Factory):
         return Echo(self,self.sid)
     def Sync(self,ide):
             if(self.f=={}):
-                self.f[ide]=Size.BLOCK_MAX_SIZE
+                self.f[ide]=Size.BLOCK_MAX_SIZE            
             elif(self.f.has_key(ide)):
                 self.f[ide]=self.f[ide]+Size.BLOCK_MAX_SIZE
             else:
