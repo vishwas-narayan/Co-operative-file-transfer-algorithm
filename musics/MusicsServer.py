@@ -100,7 +100,7 @@ class Echo(protocol.Protocol):
             responseContent="FileNotFound : %s" %(self.filename)
             self.transport.write(json.dumps(responseContent))                                   
     
-    def sendBlock(self,filename):;
+    def sendBlock(self,filename):
         
         try:
         
