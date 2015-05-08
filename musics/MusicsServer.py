@@ -68,7 +68,7 @@ class Echo(protocol.Protocol):
                     LOG.info ("Current working directory %s" %(os.getcwd()))
                     self.filename=v.validate(self.d[DS.CONTENT])[1]
                     LOG.info ("filename validated %s " %(self.filename))
-                    self.bd=BlockDivider(self.filename,self.d[DS.ID])
+                    self.bd =BlockDivider(self.filename,self.d[DS.ID])
                     LOG.info ("File exists")
                     """1.this module is to check for the filesize. 
                     if the filesize is greater than 1024bytes,then send reInit to client.

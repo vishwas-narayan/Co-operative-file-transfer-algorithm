@@ -19,8 +19,9 @@ class FileNotFoundException(Exception):
 class NullError(Exception):
     pass
 class Size():  
-    BLOCK_MAX_SIZE=1024
-    FILE_MAX_SIZE=1024
+    BLOCK_MAX_SIZE=1200
+    FILE_MAX_SIZE=1200
+    
     LENGTH=0
     i=0
     fl=0
@@ -40,7 +41,7 @@ class Size():
         return st.st_size 
    
     def decisionOnInstanceCreation(self,noc,ide):
-        if(self.fl>self.FILE_MAX_SIZE and noc[ide]<4):#not working since all instances create their own object for Size.
+        if(self.fl>self.FILE_MAX_SIZE and noc[ide]<2):#not working since all instances create their own object for Size.
             return True
         else:
             return False   

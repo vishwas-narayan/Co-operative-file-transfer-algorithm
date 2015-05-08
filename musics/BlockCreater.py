@@ -4,18 +4,18 @@ class FileNotFoundException(Exception):
     
 
 class DS:
-    BLOCK="BLOCK"
-    BLOCKSIZE="BLOCKSIZE"
-    CONTENT="CONTENT"
-    CONTENT_TYPE="CONTENT_TYPE"
-    DATA="DATA"
-    OPERATION="OPERATION"
-    INIT="INIT"
-    ID="ID"
-    EOF="EOF"
-    ACK="ACK"     
-    REINIT="REINIT"
-    GET="GET"
+    BLOCK="B"
+    BLOCKSIZE="S"
+    CONTENT="C"
+    CONTENT_TYPE="T"
+    DATA="D"
+    OPERATION="O"
+    INIT="I"
+    ID="N"
+    EOF="E"
+    ACK="A"     
+    REINIT="R"
+    GET="G"
 import json
 class BlockCreator():
     blockNum={}
@@ -85,6 +85,6 @@ if __name__ == "__main__":
         d=bc.createBlock()
         print d        
     except FileNotFoundException:
-        print ("File %s dones not exist" %(filename))
+        print ("File %s does not exist" %(filename))
       
 
