@@ -19,14 +19,14 @@ class FileNotFoundException(Exception):
 class NullError(Exception):
     pass
 class Size():  
-<<<<<<< HEAD
+
     BLOCK_MAX_SIZE=1200
     FILE_MAX_SIZE=1200
     
-=======
+
     BLOCK_MAX_SIZE=2048
     FILE_MAX_SIZE=2048
->>>>>>> 3c3d2c422c74828911586382ae0c89c464955a49
+
     LENGTH=0
     i=0
     fl=0

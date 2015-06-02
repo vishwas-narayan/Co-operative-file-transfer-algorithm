@@ -89,7 +89,7 @@ class EchoFactory(protocol.ClientFactory):
         self.ide=Id
         self.filename=filename
         self.noc+=1
-        reactor.connectTCP("localhost",8000,self)
+        reactor.connectTCP(ip.f[2],8000,self,30,ip.f[4])
         LOG.debug("connection %d is made",self.noc) 
     def clientSync(self,data):
         LOG.debug("inside client syn")
@@ -134,7 +134,7 @@ class EchoFactory(protocol.ClientFactory):
             reactor.stop()
 echoFactory=EchoFactory()
 LOG.debug("1st connection is made")
-reactor.connectTCP("localhost",8000,echoFactory)
+reactor.connectTCP(ip.f[1],8000,EchoFactory(),30,ip.f[3])
 reactor.run()   
         
 
