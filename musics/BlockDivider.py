@@ -22,11 +22,6 @@ class Size():
 
     BLOCK_MAX_SIZE=1200
     FILE_MAX_SIZE=1200
-    
-
-    BLOCK_MAX_SIZE=2048
-    FILE_MAX_SIZE=2048
-
     LENGTH=0
     i=0
     fl=0
